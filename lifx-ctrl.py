@@ -4,7 +4,6 @@ from lifxlan import *
 from copy import deepcopy
 from time import sleep
 from random import *
-import keyboard
 
 global strip
 
@@ -69,44 +68,24 @@ def main():
         print("Selected {}".format(strip.get_label()))
 
         # naa on alkuperasta varia varten
-        original_zones = strip.get_color_zones()
+        all_zones = strip.get_color_zones()
+        original_zones = deepcopy(all_zones)
 
         # tassa loudetaan zonejen maara
-        zone_count = len(original_zones)
+        zone_count = len(all_zones)
 
-        # stars = [Star(i) for i in range(zone_count)]
-        # 
-
+        stars = [Star(i) for i in range(zone_count)]
     else:
         print("No multizone lights available")
 
     while True:
 
-        #randomlist = list(range(zone_count))
-        #print(randomlist)
-        #shuffle(randomlist)
-        #for i in range(zone_count):
-        #    stars[randomlist[i]].glitter()
-        #    sleep(delay)
-
-        if keyboard.read_key() == "a":
-            print("Copying all zones to memory A")
-            memory_a = strip.get_color_zones()
-        if keyboard.read_key() == "b":
-            print("Copying all zones to memory B")
-            memory_b = strip.get_color_zones()
-
-        if keyboard.read_key() == "s":
-            print("Applying zones from memory A")
-            strip.set_zone_colors(memory_a)
-        if keyboard.read_key() == "n":
-            print("Applying zones from memory B")
-            strip.set_zone_colors(memory_b) 
-
-        if keyboard.read_key() == "x":
-            print("Resetting to original colors")
-            strip.set_zone_colors(original_zones) 
-
+        randomlist = list(range(zone_count))
+        print(randomlist)
+        shuffle(randomlist)
+        for i in range(zone_count):
+            stars[randomlist[i]].glitter()
+            sleep(delay)
 
 if __name__=="__main__":
     main()
