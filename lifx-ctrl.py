@@ -7,16 +7,22 @@ from random import *
 
 global strip
 
+# placeholder variables to simulate GPIO inputs
+# TODO replace with actual gpio stuff
 ph_input_power = 1
 ph_input_zonemode = 0
 ph_input_colormode = 0
-ph_input_pot = 1
+ph_input_pot = 0 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
 ph_input_switch_temperature = 1
 ph_input_switch_color = 0
 ph_input_encoder = 0
 ph_input_preset = 0
 
 def main():
+
+  ########################
+  #### Initialization ####
+  ########################
 
   num_lights = None
   if len(sys.argv) != 2:
@@ -47,11 +53,11 @@ def main():
     print("Selected {}".format(strip.get_label()))
 
     # saving the original zones
-    all_zones = strip.get_color_zones()
-    original_zones = deepcopy(all_zones)
+    original_zones = strip.get_color_zones()
+    current_zones = deepcopy(original_zones)
 
     # the amount of zones in the light
-    zone_count = len(all_zones)
+    zone_count = len(original_zones)
 
   # if there's no light available...
   else:
@@ -61,6 +67,7 @@ def main():
   #######################################
   #### actual running program itself ####
   #######################################
+
 
   while True:
 
@@ -91,7 +98,14 @@ def main():
 
         # if the color mode is off only brightness is adjusted
         if ph_input_colormode == 0:
-          pass
+          for i in range(zone_count):
+            apply = 0
+            if i == zone_count-1:
+              apply = 1
+            new_color = list(current_zones[i])
+            new_color[2] = 65535 * ph_input_pot # TODO this now overrides the existing brightnesses. This needs a better system at some point
+            print(new_color)
+            strip.set_zone_color(i, i, new_color, 0, False, apply)
 
         # if the color mode is on, the 3-way switch selects which parameter is changed
         else:
@@ -115,7 +129,6 @@ def main():
 
 
       # TODO preset button behaviour
-
 
 
 if __name__=="__main__":
