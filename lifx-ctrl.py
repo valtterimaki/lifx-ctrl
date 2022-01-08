@@ -4,19 +4,61 @@ from lifxlan import *
 from copy import deepcopy
 from time import sleep
 from random import *
+from pynput import keyboard
 
 global strip
 
-# placeholder variables to simulate GPIO inputs
+# state variables
+state_power = 0
+state_zonemode = 0
+state_colormode = 0
+state_switch_temperature = 1
+state_switch_color = 0
+state_preset = 0
+
+ph_input_pot = 0.0 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
+
+# Keyboard input placeholder to simulate GPIO inputs
 # TODO replace with actual gpio stuff
-ph_input_power = 1
-ph_input_zonemode = 0
-ph_input_colormode = 0
-ph_input_pot = 0 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
-ph_input_switch_temperature = 1
-ph_input_switch_color = 0
-ph_input_encoder = 0
-ph_input_preset = 0
+def on_press(key):
+    try:
+      pass
+        #print('alphanumeric key {0} pressed'.format(key.char))
+    except AttributeError:
+        #print('special key {0} pressed'.format(key))
+        pass
+
+def on_release(key):
+
+    # placeholder variable to simulate pot reading
+    global ph_input_pot
+
+    #print('{0} released'.format(key))
+    if key == keyboard.Key.esc:
+        # Stop listener
+        return False
+    if 'char' in dir(key):
+      if key.char == 'q':
+        strip.set_power("on", True)
+        state_power = 1
+        print("power " + str(state_power))
+      if key.char == 'a':
+        strip.set_power("off", True)
+        state_power = 0
+        print("power " + str(state_power))
+      if key.char == 'p':
+        if ph_input_pot < 0.95:
+          ph_input_pot += 0.1
+          print("pot value " + str(ph_input_pot))
+      if key.char == 'o':
+        if ph_input_pot > 0.05:
+          ph_input_pot -= 0.1
+          print("pot value " + str(ph_input_pot))
+
+def map(val, src, dst):
+    # Map the given value from the scale of src to the scale of dst.
+    return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
+
 
 def main():
 
@@ -63,6 +105,9 @@ def main():
   else:
     print("No multizone lights available")
 
+  # check the power and set the state variable accordingly
+  if strip.get_power() == 65535:
+    state_power = 1
 
   #######################################
   #### actual running program itself ####
@@ -71,53 +116,42 @@ def main():
 
   while True:
 
+    # Collect keyboard events until released
+    with keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release) as listener:
+      listener.join()
+
     ## first of all, checking if lifx power is on or not
 
     # if power is off, only power on switch function and indicator lights are active
-    if strip.get_power() == 0:
-
-      # if power switch is turned ON
-      if ph_input_power == 1:
-        strip.set_power("on")
-        print("power on")
-        sleep(0.1)
+    if state_power == 0:
+      pass
 
     # if power is on, all functions are active
-    if strip.get_power() == 65535:
-
-      # if power switch is turned OFF
-      if ph_input_power == 0:
-        strip.set_power("off")
-        print("power off")
-        sleep(0.1)
+    if state_power == 1:
 
       ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
 
       # if zone mode is OFF
-      if ph_input_zonemode == 0:
+      if state_zonemode == 0:
 
         # if the color mode is off only brightness is adjusted
-        if ph_input_colormode == 0:
-          for i in range(zone_count):
-            apply = 0
-            if i == zone_count-1:
-              apply = 1
-            new_color = list(current_zones[i])
-            new_color[2] = 65535 * ph_input_pot # TODO this now overrides the existing brightnesses. This needs a better system at some point
-            print(new_color)
-            strip.set_zone_color(i, i, new_color, 0, False, apply)
+        if state_colormode == 0:
+          strip.set_brightness(65535 * ph_input_pot, 0, False)
+          print("test")
 
         # if the color mode is on, the 3-way switch selects which parameter is changed
         else:
           # if temperature mode
-          if ph_input_switch_temperature == 1:
-            pass
+          if state_switch_temperature == 1:
+            strip.set_colortemp(map(ph_input_pot, (0.0, 1.0), (2500, 9000)), 0, False)
           # if color mode
-          elif ph_input_switch_color == 1:
-            pass
+          elif state_switch_color == 1:
+            strip.set_hue(65535 * ph_input_pot, 0, False)
           # if saturation mode
           else:
-            pass
+            strip.set_saturation(65535 * ph_input_pot, 0, False)
 
         # TODO encoder behaviour here (randomizer)
 
@@ -133,3 +167,5 @@ def main():
 
 if __name__=="__main__":
   main()
+
+
