@@ -2,9 +2,10 @@
 import sys
 from lifxlan import *
 from copy import deepcopy
-from time import sleep
+import time
 from random import *
 from pynput import keyboard
+import math
 
 global strip
 
@@ -20,17 +21,23 @@ state_preset = 0
 ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
 ph_input_pot_prev = ph_input_pot
 
+simplecounter = 0
+
+prev_time = math.floor(time.time()*10)
+
+temp_color = [0, 0, 65535, 5000]
+
 # Keyboard input placeholder to simulate GPIO inputs
 # TODO replace with actual gpio stuff
-def on_press(key):
-    try:
-      pass
-        #print('alphanumeric key {0} pressed'.format(key.char))
-    except AttributeError:
-        #print('special key {0} pressed'.format(key))
-        pass
+#def key_press(key):
+#    try:
+#      pass
+#        #print('alphanumeric key {0} pressed'.format(key.char))
+#    except AttributeError:
+#        #print('special key {0} pressed'.format(key))
+#        pass
 
-def on_release(key):
+def key_release(key):
 
   # declare state variables (here because wtf...)
   global state_power
@@ -40,9 +47,13 @@ def on_release(key):
   global state_switch_color
   global state_preset
 
+  global selected_zone
+
   # placeholder variable to simulate pot reading
   global ph_input_pot
   global ph_input_pot_prev
+
+  global temp_color
 
   #print('{0} released'.format(key))
   #if key == keyboard.Key.esc:
@@ -57,6 +68,7 @@ def on_release(key):
       strip.set_power("off", True)
       state_power = 0
       print("power " + str(state_power))
+
     if key.char == 'h':
       state_colormode = 1 - state_colormode
       print("colormode " + str(state_colormode))
@@ -72,6 +84,14 @@ def on_release(key):
       state_switch_color = 0
       state_switch_brightness = 1
       print("brightness switch on")
+
+    if key.char == 'z':
+      selected_zone = 0
+      if state_zonemode == 0:
+        temp_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+      sleep(0.1)
+      state_zonemode = 1 - state_zonemode
+      print("zonemode " + str(state_zonemode))
 
 #-------------
 
@@ -98,6 +118,8 @@ def on_release(key):
       # if zone mode is OFF
       if state_zonemode == 0:
 
+        # Knob behaviour
+
         # if the color mode is off only temperature is adjusted
         if state_colormode == 0 and ph_input_pot != ph_input_pot_prev:
           strip.set_colortemp(map(ph_input_pot, (0.0, 1.0), (2500, 9000)), 0, False)
@@ -122,13 +144,37 @@ def on_release(key):
 
       # if zone mode is ON
       else:
+
+        if key.char == 'c':
+          if selected_zone < zone_count:
+            temp_color[2] = 65535
+            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+            selected_zone += 1
+            print("selected zone " + str(selected_zone))
+        if key.char == 'x':
+          if selected_zone > 0:
+            temp_color[2] = 65535
+            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+            selected_zone -= 1
+            print("selected zone " + str(selected_zone))
+
+
+
+
+
         # TODO knob behaviour here
         # TODO encoder behaviour here
-        pass
+
 
 def map(val, src, dst):
     # Map the given value from the scale of src to the scale of dst.
     return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
+
+def count_halfsecond():
+  global prev_time
+  if prev_time + 2 < math.floor(time.time()*10):
+    prev_time = math.floor(time.time()*10)
+    return True
 
 
 def main():
@@ -136,6 +182,8 @@ def main():
   ########################
   #### Initialization ####
   ########################
+
+  global zone_count
 
   num_lights = None
   if len(sys.argv) != 2:
@@ -182,6 +230,11 @@ def main():
     print("powertest")
     print(state_power)
 
+  # listen for keyboard
+  listener = keyboard.Listener(on_press=key_release)
+  listener.start()
+
+  simplecounter = 0
 
   #######################################
   #### actual running program itself ####
@@ -189,12 +242,20 @@ def main():
 
   while True:
 
-    # Collect keyboard events until released
-    with keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release) as listener:
-      listener.join()
+    if count_halfsecond() == True:
+      simplecounter += 1
+      print(simplecounter)
 
+    if state_zonemode == 1:
+      if simplecounter >= 2:
+        simplecounter = 0
+        temp_color[2] = 0
+        strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+        print(temp_color)
+      if simplecounter == 1 and temp_color[2] == 0:
+        temp_color[2] = 65535
+        strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+        print(temp_color)
 
 
 
