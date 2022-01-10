@@ -26,6 +26,7 @@ simplecounter = 0
 prev_time = math.floor(time.time()*10)
 
 temp_color = [0, 0, 65535, 5000]
+zone_set_color = [0, 0, 0, 5000]
 
 # Keyboard input placeholder to simulate GPIO inputs
 # TODO replace with actual gpio stuff
@@ -54,6 +55,7 @@ def key_release(key):
   global ph_input_pot_prev
 
   global temp_color
+  global zone_set_color
 
   #print('{0} released'.format(key))
   #if key == keyboard.Key.esc:
@@ -88,7 +90,8 @@ def key_release(key):
     if key.char == 'z':
       selected_zone = 0
       if state_zonemode == 0:
-        temp_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+        zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+        temp_color = zone_set_color
       sleep(0.1)
       state_zonemode = 1 - state_zonemode
       print("zonemode " + str(state_zonemode))
@@ -147,18 +150,37 @@ def key_release(key):
 
         if key.char == 'c':
           if selected_zone < zone_count:
-            temp_color[2] = 65535
-            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+            strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
             selected_zone += 1
             print("selected zone " + str(selected_zone))
+            print(zone_set_color)
         if key.char == 'x':
           if selected_zone > 0:
-            temp_color[2] = 65535
-            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
+            strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
             selected_zone -= 1
             print("selected zone " + str(selected_zone))
 
+        # Knob behaviour
 
+        # if the color mode is off only temperature is adjusted
+        if state_colormode == 0 and ph_input_pot != ph_input_pot_prev:
+          zone_set_color[3] = map(ph_input_pot, (0.0, 1.0), (2500, 9000))
+          ph_input_pot_prev = ph_input_pot
+
+        # if the color mode is on, the 3-way switch selects which parameter is changed
+        else:
+          # if brightness mode
+          if state_switch_brightness == 1 and ph_input_pot != ph_input_pot_prev:
+            zone_set_color[2] = 65535 * ph_input_pot
+            ph_input_pot_prev = ph_input_pot
+          # if color mode
+          elif state_switch_color == 1 and ph_input_pot != ph_input_pot_prev:
+            zone_set_color[0] = 65535 * ph_input_pot
+            ph_input_pot_prev = ph_input_pot
+          # if saturation mode
+          elif state_switch_brightness == 0 and state_switch_color == 0 and ph_input_pot != ph_input_pot_prev:
+            zone_set_color[1] = 65535 * ph_input_pot
+            ph_input_pot_prev = ph_input_pot
 
 
 
@@ -249,13 +271,15 @@ def main():
     if state_zonemode == 1:
       if simplecounter >= 2:
         simplecounter = 0
+        temp_color = zone_set_color
         temp_color[2] = 0
         strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
         print(temp_color)
       if simplecounter == 1 and temp_color[2] == 0:
+        temp_color = zone_set_color
         temp_color[2] = 65535
         strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
-        print(temp_color)
+        #print(temp_color)
 
 
 
