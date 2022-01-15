@@ -6,6 +6,12 @@ import time
 from random import *
 from pynput import keyboard
 import math
+# GPIO library, note that the except part is for enabling dummy development on mac/pc
+try:
+    import RPi.GPIO
+except (RuntimeError, ModuleNotFoundError):
+    import fake_rpigpio.utils
+    fake_rpigpio.utils.install()
 
 global strip
 
@@ -30,13 +36,6 @@ zone_set_color = [0, 0, 0, 5000]
 
 # Keyboard input placeholder to simulate GPIO inputs
 # TODO replace with actual gpio stuff
-#def key_press(key):
-#    try:
-#      pass
-#        #print('alphanumeric key {0} pressed'.format(key.char))
-#    except AttributeError:
-#        #print('special key {0} pressed'.format(key))
-#        pass
 
 def key_release(key):
 
