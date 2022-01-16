@@ -4,16 +4,38 @@ from lifxlan import *
 from copy import deepcopy
 import time
 from random import *
-from pynput import keyboard
 import math
+import busio
+import digitalio
+import board
+import adafruit_mcp3xxx.mcp3008 as MCP
+from adafruit_mcp3xxx.analog_in import AnalogIn
+
+
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
-    import RPi.GPIO
-except (RuntimeError, ModuleNotFoundError):
-    import fake_rpigpio.utils
-    fake_rpigpio.utils.install()
+    # checks if you have access to RPi.GPIO, which is available inside RPi
+    import RPi.GPIO as GPIO
+except:
+    # In case of exception, you are executing your script outside of RPi, so import Mock.GPIO
+    import Mock.GPIO as GPIO
+# from encoder import Encoder
+
+
+
+#####################
+##### VARIABLES #####
+#####################
 
 global strip
+
+# define buttons (TODO remap)
+BTN_POWER_ON = 1
+BTN_POWER_OFF = 2
+BTN_ZONE = 3
+BTN_COLOR = 4
+SWITCH_BRIGHTNESS = 5
+SWITCH_COLOR = 6
 
 # set state variables
 state_power = 1
@@ -21,22 +43,31 @@ state_zonemode = 0
 state_colormode = 0
 state_switch_brightness = 0
 state_switch_color = 0
-state_preset = 0
-
-# set pot simulation initial value
-ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
-ph_input_pot_prev = ph_input_pot
-
-simplecounter = 0
 
 prev_time = math.floor(time.time()*10)
 
 temp_color = [0, 0, 65535, 5000]
 zone_set_color = [0, 0, 0, 5000]
 
+# these are for the potentiometer
+# create the spi bus
+spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
+# create the cs (chip select)
+cs = digitalio.DigitalInOut(board.D5)
+# create the mcp object
+mcp = MCP.MCP3008(spi, cs)
+# create an analog input channel on pin 0
+chan = AnalogIn(mcp, MCP.P0)
+
+
+
+##############################################
+##### OLD PLACEHOLDER KEYBOARD TEST CODE #####
+##############################################
+
 # Keyboard input placeholder to simulate GPIO inputs
 # TODO replace with actual gpio stuff
-
+"""
 def key_release(key):
 
   # declare state variables (here because wtf...)
@@ -185,7 +216,88 @@ def key_release(key):
 
         # TODO knob behaviour here
         # TODO encoder behaviour here
+"""
 
+
+
+########################################################################
+##### GPIO callbacks that determine what happen on button triggers #####
+########################################################################
+
+def btn_power_on_cb(channel):
+  print("Power switch on!")
+  global state_power
+  strip.set_power("on", True)
+  state_power = 1
+  print("power " + str(state_power))
+
+
+def btn_power_off_cb(channel):
+  print("Power switch off!")
+  strip.set_power("off", True)
+  state_power = 0
+  print("power " + str(state_power))
+
+
+def btn_zonemode_cb(channel):
+  print("Zonemode button pressed!")
+  global state_zonemode
+  global zone_set_color
+
+  # first of all, check if lifx power is on or not and do nothing if not
+  if state_power == 1:
+    selected_zone = 0
+    if state_zonemode == 0:
+      zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+      temp_color = zone_set_color
+    sleep(0.1)
+    state_zonemode = 1 - state_zonemode
+    print("zonemode " + str(state_zonemode))
+
+
+def btn_colormode_cb(channel):
+  print("Colormode button pressed!")
+  global state_colormode
+
+  # first of all, check if lifx power is on or not and do nothing if not
+  if state_power == 1:
+    state_colormode = 1 - state_colormode
+    print("colormode " + str(state_colormode))
+
+
+def enc_cb(value, direction):
+  print("Encoder turned!")
+  global selected_zone
+
+  # first of all, check if lifx power is on or not and do nothing if not
+  if state_power == 1:
+
+    # if zone mode is OFF
+    if state_zonemode == 0:
+      pass
+
+    # if zone mode is ON
+    else:
+      if direction == "R":
+        if selected_zone < zone_count:
+          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+          selected_zone += 1
+          print("selected zone " + str(selected_zone))
+          print(zone_set_color)
+      if direction == "L":
+        if selected_zone > 0:
+          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+          selected_zone -= 1
+          print("selected zone " + str(selected_zone))
+      print("* New value: {}, Direction: {}".format(value, direction))
+
+# TODO add preset change here at some point
+
+
+
+##################################
+##### other custom functions #####
+##################################
 
 def map(val, src, dst):
     # Map the given value from the scale of src to the scale of dst.
@@ -198,6 +310,9 @@ def count_halfsecond():
     return True
 
 
+# main function --------------------------------------------
+
+
 def main():
 
   ########################
@@ -205,6 +320,12 @@ def main():
   ########################
 
   global zone_count
+
+  ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
+  ph_input_pot_prev = ph_input_pot
+
+
+  #### lifx init ####
 
   num_lights = None
   if len(sys.argv) != 2:
@@ -245,17 +366,39 @@ def main():
   else:
     print("No multizone lights available")
 
+
+
+  #### GPIO setups ####
+
+  GPIO.setmode(GPIO.BCM)
+
+  GPIO.setup(BTN_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(BTN_POWEROFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+  GPIO.add_event_detect(BTN_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
+  GPIO.add_event_detect(BTN_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
+  GPIO.add_event_detect(BTN_ZONE, GPIO.FALLING, callback=btn_zonemode_cb, bouncetime=50)
+  GPIO.add_event_detect(BTN_COLOR, GPIO.FALLING, callback=btn_colormode_cb, bouncetime=50)
+
+  # enc = Encoder(6, 7, enc_cb) # remap gpio
+
+
+
+  #### others ####
+
   # check the power and set the state variable accordingly
   if strip.get_power() == 65535:
     state_power = 1
     print("powertest")
     print(state_power)
 
-  # listen for keyboard
-  listener = keyboard.Listener(on_press=key_release)
-  listener.start()
-
   simplecounter = 0
+
+
 
   #######################################
   #### actual running program itself ####
@@ -267,7 +410,59 @@ def main():
       simplecounter += 1
       print(simplecounter)
 
-    if state_zonemode == 1:
+    ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
+
+    # if zone mode is OFF
+    if state_zonemode == 0:
+
+      # Knob behaviour
+
+      # if the color mode is off only temperature is adjusted
+      if state_colormode == 0 and ph_input_pot != ph_input_pot_prev:
+        strip.set_colortemp(map(ph_input_pot, (0.0, 1.0), (2500, 9000)), 0, False)
+        ph_input_pot_prev = ph_input_pot
+
+      # if the color mode is on, the 3-way switch selects which parameter is changed
+      else:
+        # if brightness mode
+        if not GPIO.input(SWITCH_BRIGHTNESS) and ph_input_pot != ph_input_pot_prev:
+          strip.set_brightness(65535 * ph_input_pot, 0, False)
+          ph_input_pot_prev = ph_input_pot
+        # if color mode
+        elif not GPIO.input(SWITCH_COLOR) and ph_input_pot != ph_input_pot_prev:
+          strip.set_hue(65535 * ph_input_pot, 0, False)
+          ph_input_pot_prev = ph_input_pot
+        # if saturation mode
+        elif GPIO.input(SWITCH_BRIGHTNESS) and GPIO.input(SWITCH_COLOR) and ph_input_pot != ph_input_pot_prev:
+          strip.set_saturation(65535 * ph_input_pot, 0, False)
+          ph_input_pot_prev = ph_input_pot
+
+    else:
+
+      # Knob behaviour
+
+      # if the color mode is off only temperature is adjusted
+      if state_colormode == 0 and ph_input_pot != ph_input_pot_prev:
+        zone_set_color[3] = map(ph_input_pot, (0.0, 1.0), (2500, 9000))
+        ph_input_pot_prev = ph_input_pot
+
+      # if the color mode is on, the 3-way switch selects which parameter is changed
+      else:
+        # if brightness mode
+        if state_switch_brightness == 1 and ph_input_pot != ph_input_pot_prev:
+          zone_set_color[2] = 65535 * ph_input_pot
+          ph_input_pot_prev = ph_input_pot
+        # if color mode
+        elif state_switch_color == 1 and ph_input_pot != ph_input_pot_prev:
+          zone_set_color[0] = 65535 * ph_input_pot
+          ph_input_pot_prev = ph_input_pot
+        # if saturation mode
+        elif state_switch_brightness == 0 and state_switch_color == 0 and ph_input_pot != ph_input_pot_prev:
+          zone_set_color[1] = 65535 * ph_input_pot
+          ph_input_pot_prev = ph_input_pot
+
+      # blinking behaviour
+
       if simplecounter >= 2:
         simplecounter = 0
         temp_color = zone_set_color
@@ -280,9 +475,7 @@ def main():
         strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, 1, 1)
         #print(temp_color)
 
-
-
-      # TODO preset button behaviour
+  # TODO preset button behaviour
 
 
 if __name__=="__main__":
