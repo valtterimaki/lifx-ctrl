@@ -30,8 +30,8 @@ except:
 global strip
 
 # define buttons (TODO remap)
-BTN_POWER_ON = 1
-BTN_POWER_OFF = 2
+SWITCH_POWER_ON = 1
+SWITCH_POWER_OFF = 2
 BTN_ZONE = 3
 BTN_COLOR = 4
 SWITCH_BRIGHTNESS = 5
@@ -372,15 +372,15 @@ def main():
 
   GPIO.setmode(GPIO.BCM)
 
-  GPIO.setup(BTN_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(BTN_POWEROFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_POWER_OFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-  GPIO.add_event_detect(BTN_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
-  GPIO.add_event_detect(BTN_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
+  GPIO.add_event_detect(SWITCH_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
+  GPIO.add_event_detect(SWITCH_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
   GPIO.add_event_detect(BTN_ZONE, GPIO.FALLING, callback=btn_zonemode_cb, bouncetime=50)
   GPIO.add_event_detect(BTN_COLOR, GPIO.FALLING, callback=btn_colormode_cb, bouncetime=50)
 

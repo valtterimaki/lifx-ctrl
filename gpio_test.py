@@ -28,8 +28,8 @@ except:
 #####################
 
 # define buttons (TODO remap)
-BTN_POWER_ON = 1
-BTN_POWER_OFF = 2
+SWITCH_POWER_ON = 1
+SWITCH_POWER_OFF = 2
 BTN_ZONE = 3
 BTN_COLOR = 4
 SWITCH_BRIGHTNESS = 5
@@ -67,55 +67,17 @@ def btn_power_off_cb(channel):
 
 def btn_zonemode_cb(channel):
   print("Zonemode button pressed!")
-  global state_zonemode
-  global zone_set_color
-
-  # first of all, check if lifx power is on or not and do nothing if not
-  if state_power == 1:
-    selected_zone = 0
-    if state_zonemode == 0:
-      zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
-      temp_color = zone_set_color
-    sleep(0.1)
-    state_zonemode = 1 - state_zonemode
-    print("zonemode " + str(state_zonemode))
 
 
 def btn_colormode_cb(channel):
   print("Colormode button pressed!")
-  global state_colormode
-
-  # first of all, check if lifx power is on or not and do nothing if not
-  if state_power == 1:
-    state_colormode = 1 - state_colormode
-    print("colormode " + str(state_colormode))
 
 
 def enc_cb(value, direction):
   print("Encoder turned!")
-  global selected_zone
+  print("* New value: {}, Direction: {}".format(value, direction))
 
-  # first of all, check if lifx power is on or not and do nothing if not
-  if state_power == 1:
 
-    # if zone mode is OFF
-    if state_zonemode == 0:
-      pass
-
-    # if zone mode is ON
-    else:
-      if direction == "R":
-        if selected_zone < zone_count:
-          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-          selected_zone += 1
-          print("selected zone " + str(selected_zone))
-          print(zone_set_color)
-      if direction == "L":
-        if selected_zone > 0:
-          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-          selected_zone -= 1
-          print("selected zone " + str(selected_zone))
-      print("* New value: {}, Direction: {}".format(value, direction))
 
 # TODO add preset change here at some point
 
@@ -149,15 +111,15 @@ def main():
 
   GPIO.setmode(GPIO.BCM)
 
-  GPIO.setup(BTN_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(BTN_POWEROFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_POWER_OFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-  GPIO.add_event_detect(BTN_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
-  GPIO.add_event_detect(BTN_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
+  GPIO.add_event_detect(SWITCH_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
+  GPIO.add_event_detect(SWITCH_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
   GPIO.add_event_detect(BTN_ZONE, GPIO.FALLING, callback=btn_zonemode_cb, bouncetime=50)
   GPIO.add_event_detect(BTN_COLOR, GPIO.FALLING, callback=btn_colormode_cb, bouncetime=50)
 
@@ -169,6 +131,13 @@ def main():
   #######################################
 
   while True:
+    if not GPIO.input(SWITCH_BRIGHTNESS):
+      print("Brightness switch on")
+    elif not GPIO.input(SWITCH_COLOR):
+      print("Brightness switch on")
+    elif GPIO.input(SWITCH_BRIGHTNESS) and GPIO.input(SWITCH_COLOR):
+      print("Brightness switch on")
+    sleep(1)
 
 
 
