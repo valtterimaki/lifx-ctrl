@@ -111,17 +111,17 @@ def main():
 
   GPIO.setmode(GPIO.BCM)
 
-  GPIO.setup(SWITCH_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(SWITCH_POWER_OFF, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-  GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(SWITCH_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(SWITCH_POWER_OFF, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-  GPIO.add_event_detect(SWITCH_POWER_ON, GPIO.FALLING, callback=btn_power_on_cb, bouncetime=50)
-  GPIO.add_event_detect(SWITCH_POWER_OFF, GPIO.FALLING, callback=btn_power_off_cb, bouncetime=50)
-  GPIO.add_event_detect(BTN_ZONE, GPIO.FALLING, callback=btn_zonemode_cb, bouncetime=50)
-  GPIO.add_event_detect(BTN_COLOR, GPIO.FALLING, callback=btn_colormode_cb, bouncetime=50)
+  GPIO.add_event_detect(SWITCH_POWER_ON, GPIO.RISING, callback=btn_power_on_cb, bouncetime=10)
+  GPIO.add_event_detect(SWITCH_POWER_OFF, GPIO.RISING, callback=btn_power_off_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
 
   # enc = Encoder(6, 7, enc_cb) # remap gpio
 
