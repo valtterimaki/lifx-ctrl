@@ -10,7 +10,7 @@ import digitalio
 import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
-
+from encoder import Encoder
 
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
@@ -19,19 +19,15 @@ try:
 except:
     # In case of exception, you are executing your script outside of RPi, so import Mock.GPIO
     import Mock.GPIO as GPIO
-# from encoder import Encoder
-
-
 
 #####################
 ##### VARIABLES #####
 #####################
 
 # define buttons (TODO remap)
-SWITCH_POWER_ON = 1
-SWITCH_POWER_OFF = 2
-BTN_ZONE = 3
-BTN_COLOR = 4
+SWITCH_POWER = 27
+BTN_ZONE = 4
+BTN_COLOR = 17
 SWITCH_BRIGHTNESS = 5
 SWITCH_COLOR = 6
 
@@ -39,11 +35,11 @@ SWITCH_COLOR = 6
 # create the spi bus
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
 # create the cs (chip select)
-cs = digitalio.DigitalInOut(board.D5)
+cs = digitalio.DigitalInOut(board.D22)
 # create the mcp object
 mcp = MCP.MCP3008(spi, cs)
 # create an analog input channel on pin 0
-chan = AnalogIn(mcp, MCP.P0)
+chan0 = AnalogIn(mcp, MCP.P0)
 
 
 ########################################################################
@@ -51,26 +47,21 @@ chan = AnalogIn(mcp, MCP.P0)
 ########################################################################
 
 def btn_power_on_cb(channel):
-  print("Power switch on!")
-  global state_power
-  strip.set_power("on", True)
-  state_power = 1
-  print("power " + str(state_power))
-
-
-def btn_power_off_cb(channel):
-  print("Power switch off!")
-  strip.set_power("off", True)
-  state_power = 0
-  print("power " + str(state_power))
+  sleep(0.009)
+  if GPIO.input(SWITCH_POWER) == 1:
+    print("Power switch on!")
+  else:
+    print("Power switch off!")
 
 
 def btn_zonemode_cb(channel):
-  print("Zonemode button pressed!")
+  if GPIO.input(BTN_ZONE) == 1:
+    print("Zonemode button pressed!")
 
 
 def btn_colormode_cb(channel):
-  print("Colormode button pressed!")
+  if GPIO.input(BTN_COLOR) == 1:
+    print("Colormode button pressed!")
 
 
 def enc_cb(value, direction):
@@ -111,19 +102,22 @@ def main():
 
   GPIO.setmode(GPIO.BCM)
 
-  GPIO.setup(SWITCH_POWER_ON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-  GPIO.setup(SWITCH_POWER_OFF, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(SWITCH_POWER, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-  GPIO.add_event_detect(SWITCH_POWER_ON, GPIO.RISING, callback=btn_power_on_cb, bouncetime=10)
-  GPIO.add_event_detect(SWITCH_POWER_OFF, GPIO.RISING, callback=btn_power_off_cb, bouncetime=10)
+  GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
 
-  # enc = Encoder(6, 7, enc_cb) # remap gpio
+  enc = Encoder(13, 19, enc_cb) # remap gpio
+
+  last_read = 0   # this keeps track of the last potentiometer value
+  tolerance = 550 # to keep from being jittery we'll only change
+                # volume when the pot has moved a significant amount
+                # on a 16-bit ADC
 
 
   #######################################
@@ -131,17 +125,33 @@ def main():
   #######################################
 
   while True:
-    if not GPIO.input(SWITCH_BRIGHTNESS):
-      print("Brightness switch on")
-    elif not GPIO.input(SWITCH_COLOR):
-      print("Brightness switch on")
-    elif GPIO.input(SWITCH_BRIGHTNESS) and GPIO.input(SWITCH_COLOR):
-      print("Brightness switch on")
-    sleep(1)
+
+    # we'll assume that the pot didn't move
+    trim_pot_changed = False
+
+    # read the analog pin
+    trim_pot = chan0.value
+
+    # how much has it changed since the last read?
+    pot_adjust = abs(trim_pot - last_read)
+
+    if pot_adjust > tolerance:
+        trim_pot_changed = True
+    if trim_pot_changed:
+        print(trim_pot)
+        if GPIO.input(SWITCH_BRIGHTNESS):
+          print("Brightness switch on")
+        elif GPIO.input(SWITCH_COLOR):
+          print("Color switch on")
+        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+          print("Saturation switch on")
+
+        # save the potentiometer reading for the next loop
+        last_read = trim_pot
+    sleep(0.01)
 
 
 
 if __name__=="__main__":
   main()
-
 
