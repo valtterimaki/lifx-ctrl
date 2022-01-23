@@ -274,6 +274,14 @@ def btn_colormode_cb(channel):
     else: GPIO.output(LED_COLOR,GPIO.LOW)
 
 
+def btn_preset_cb(channel):
+  if GPIO.input(BTN_PRESET) == 1:
+    print("Preset button pressed!")
+    GPIO.output(LED_PRESET, GPIO.HIGH)
+  else:
+    GPIO.output(LED_PRESET, GPIO.LOW)
+
+
 def enc_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
