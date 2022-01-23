@@ -29,9 +29,11 @@ except:
 global strip
 
 # define buttons (TODO remap)
-SWITCH_POWER = 27
-BTN_ZONE = 4
-BTN_COLOR = 17
+SWITCH_POWER = 18
+BTN_ZONE = 17
+BTN_COLOR = 27
+LED_ZONE = 16
+LED_COLOR = 20
 SWITCH_BRIGHTNESS = 5
 SWITCH_COLOR = 6
 
@@ -381,7 +383,7 @@ def main():
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
 
-  enc = Encoder(13, 19, enc_cb)
+  enc = Encoder(21, 12, enc_cb)
 
   last_read = 0   # this keeps track of the last potentiometer value
   tolerance = 550 # to keep from being jittery we'll only change
