@@ -62,7 +62,7 @@ def btn_zonemode_cb(channel):
   if GPIO.input(BTN_ZONE) == 1:
     print("Zonemode button pressed!")
     GPIO.output(LED_ZONE,GPIO.HIGH)
-  else
+  else:
     GPIO.output(LED_ZONE,GPIO.LOW)
 
 
@@ -70,14 +70,14 @@ def btn_colormode_cb(channel):
   if GPIO.input(BTN_COLOR) == 1:
     print("Colormode button pressed!")
     GPIO.output(LED_COLOR, GPIO.HIGH)
-  else
+  else:
     GPIO.output(LED_COLOR, GPIO.LOW)
 
 def btn_preset_cb(channel):
   if GPIO.input(BTN_PRESET) == 1:
     print("Preset button pressed!")
     GPIO.output(LED_PRESET, GPIO.HIGH)
-  else
+  else:
     GPIO.output(LED_PRESET, GPIO.LOW)
 
 
