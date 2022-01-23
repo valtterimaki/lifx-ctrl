@@ -446,6 +446,7 @@ def main():
     if pot_adjust > tolerance:
         trim_pot_changed = True
 
+    """
     if trim_pot_changed:
         print(trim_pot)
         if GPIO.input(SWITCH_BRIGHTNESS):
@@ -457,7 +458,7 @@ def main():
 
         # save the potentiometer reading for the next loop
         last_read = trim_pot
-
+    """
 
     # if knob was turned
     if trim_pot_changed:
@@ -521,6 +522,10 @@ def main():
             #print(temp_color)
 
       # TODO preset button behaviour
+
+      # save the potentiometer reading for the next loop
+      last_read = trim_pot
+
     sleep(0.01)
 
 if __name__=="__main__":
