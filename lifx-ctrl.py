@@ -521,10 +521,10 @@ def main():
             strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
             #print(temp_color)
 
-      # TODO preset button behaviour
+        # TODO preset button behaviour
 
-      # save the potentiometer reading for the next loop
-      last_read = trim_pot
+        # save the potentiometer reading for the next loop
+        last_read = trim_pot
 
     sleep(0.01)
 
