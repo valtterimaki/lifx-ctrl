@@ -32,8 +32,10 @@ global strip
 SWITCH_POWER = 18
 BTN_ZONE = 17
 BTN_COLOR = 27
+BTN_PRESET = 23
 LED_ZONE = 16
 LED_COLOR = 20
+LED_PRESET = 24
 SWITCH_BRIGHTNESS = 5
 SWITCH_COLOR = 6
 
@@ -254,6 +256,9 @@ def btn_zonemode_cb(channel):
         sleep(0.1)
         state_zonemode = 1 - state_zonemode
         print("zonemode " + str(state_zonemode))
+    if state_zonemode == 1:
+      GPIO.output(LED_ZONE,GPIO.HIGH)
+    else: GPIO.output(LED_ZONE,GPIO.LOW)
 
 
 def btn_colormode_cb(channel):
@@ -264,6 +269,9 @@ def btn_colormode_cb(channel):
     if state_power == 1 and GPIO.input(BTN_COLOR) == 1:
         state_colormode = 1 - state_colormode
         print("colormode " + str(state_colormode))
+    if state_colormode == 1:
+      GPIO.output(LED_COLOR,GPIO.HIGH)
+    else: GPIO.output(LED_COLOR,GPIO.LOW)
 
 
 def enc_cb(value, direction):
@@ -376,12 +384,17 @@ def main():
   GPIO.setup(SWITCH_POWER, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(BTN_ZONE, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(BTN_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(BTN_PRESET, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(LED_ZONE,GPIO.OUT)
+  GPIO.setup(LED_COLOR,GPIO.OUT)
+  GPIO.setup(LED_PRESET,GPIO.OUT)
 
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.RISING, callback=btn_preset_cb, bouncetime=10)
 
   enc = Encoder(21, 12, enc_cb)
 
@@ -500,7 +513,7 @@ def main():
             #print(temp_color)
 
       # TODO preset button behaviour
-    sleep(0.1)
+    sleep(0.01)
 
 if __name__=="__main__":
   main()
