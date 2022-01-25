@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import os
 import sys
 from lifxlan import *
 from copy import deepcopy
 import time
-from random import *
+import random
 import math
 import busio
 import digitalio
@@ -49,6 +50,7 @@ prev_time = math.floor(time.time()*10)
 general_color = [0, 0, 65535, 3500]
 temp_color = [0, 0, 65535, 3500]
 zone_set_color = [0, 0, 65535, 3500]
+selected_zone = 0
 
 # these are for the potentiometer
 # create the spi bus
@@ -131,6 +133,8 @@ def btn_preset_cb(channel):
   if GPIO.input(BTN_PRESET) == 1:
     print("Preset button pressed!")
     GPIO.output(LED_PRESET, GPIO.HIGH)
+    # this can be used for reset, make some rule for this
+    #os.execl(sys.executable, sys.executable, *sys.argv)
   else:
     GPIO.output(LED_PRESET, GPIO.LOW)
 
@@ -144,7 +148,9 @@ def enc_cb(value, direction):
 
     # if zone mode is OFF
     if state_zonemode == 0:
-      pass
+      rand_zone = random.randint(0, zone_count)
+      rand_color = [random.randint(0, 65535), random.randint(0, 65535), 65535, 3500]
+      strip.set_zone_color(rand_zone, rand_zone, rand_color, 0, 1, 1)
 
     # if zone mode is ON
     else:
@@ -159,7 +165,8 @@ def enc_cb(value, direction):
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
           selected_zone -= 1
           print("selected zone " + str(selected_zone))
-      print("* New value: {}, Direction: {}".format(value, direction))
+
+  print("* New value: {}, Direction: {}".format(value, direction))
 
 # TODO add preset change here at some point
 
@@ -303,14 +310,15 @@ def main():
     if pot_adjust > tolerance:
         trim_pot_changed = True
 
-    # if pot was turned
-    if trim_pot_changed:
-        print(trim_pot)
+    ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
 
-        ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
+    # if zone mode is OFF
+    if state_zonemode == 0:
 
-        # if zone mode is OFF
-        if state_zonemode == 0:
+        # if pot was turned
+        if trim_pot_changed:
+
+          print(trim_pot)
 
           # Knob behaviour
 
@@ -332,9 +340,17 @@ def main():
 
           strip.set_color(general_color, 200, True)
 
+          # save the potentiometer reading for the next loop
+          last_read = trim_pot
 
-        # if zone mode is ON
-        else:
+
+    # if zone mode is ON
+    else:
+
+        # if pot was turned
+        if trim_pot_changed:
+
+          print(trim_pot)
 
           # Knob behaviour
 
@@ -354,24 +370,28 @@ def main():
             elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
               zone_set_color[1] = trim_pot
 
-          # blinking behaviour
+          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
 
-          if simplecounter >= 2:
-            simplecounter = 0
-            temp_color = zone_set_color
-            temp_color[2] = 0
-            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
-            #print(temp_color)
-          if simplecounter == 1 and temp_color[2] == 0:
-            temp_color = zone_set_color
-            temp_color[2] = 65535
-            strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
-            #print(temp_color)
+          # save the potentiometer reading for the next loop
+          last_read = trim_pot
 
+        # blinking behaviour
+        """
+        if simplecounter >= 2:
+          simplecounter = 0
+          temp_color = zone_set_color
+          temp_color[2] = 0
+          strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
+          #print(temp_color)
+        if simplecounter == 1 and temp_color[2] == 0:
+          temp_color = zone_set_color
+          temp_color[2] = 65535
+          strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
+          #print(temp_color)
+        """
         # TODO preset button behaviour
 
-        # save the potentiometer reading for the next loop
-        last_read = trim_pot
+
 
     sleep(0.01)
 
