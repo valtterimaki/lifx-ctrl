@@ -91,16 +91,17 @@ def btn_zonemode_cb(channel):
 
     # first of all, check if lifx power is on or not and do nothing if not
     if state_power == 1 and GPIO.input(BTN_ZONE) == 1:
-        selected_zone = 0
-        if state_zonemode == 0:
-            zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
-            temp_color = zone_set_color
-        sleep(0.1)
-        state_zonemode = 1 - state_zonemode
-        print("zonemode " + str(state_zonemode))
+      state_zonemode = 1 - state_zonemode
+      print("zonemode " + str(state_zonemode))
+      selected_zone = 0
+
     if state_zonemode == 1:
       GPIO.output(LED_ZONE,GPIO.HIGH)
+      zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+      temp_color = zone_set_color
     else: GPIO.output(LED_ZONE,GPIO.LOW)
+
+    sleep(0.1)
 
 
 def btn_colormode_cb(channel):
@@ -111,6 +112,7 @@ def btn_colormode_cb(channel):
     if state_power == 1 and GPIO.input(BTN_COLOR) == 1:
         state_colormode = 1 - state_colormode
         print("colormode " + str(state_colormode))
+
     if state_colormode == 1:
       GPIO.output(LED_COLOR,GPIO.HIGH)
       if state_zonemode == 0:
@@ -127,6 +129,8 @@ def btn_colormode_cb(channel):
         strip.set_color(general_color, 100, True)
       else:
         zone_set_color[1] = 0
+
+    sleep(0.1)
 
 
 def btn_preset_cb(channel):
