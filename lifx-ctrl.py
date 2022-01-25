@@ -113,7 +113,13 @@ def btn_colormode_cb(channel):
         print("colormode " + str(state_colormode))
     if state_colormode == 1:
       GPIO.output(LED_COLOR,GPIO.HIGH)
-    else: GPIO.output(LED_COLOR,GPIO.LOW)
+      general_color[3] = 3500
+      general_color[1] = 65535
+      strip.set_color(general_color, 100, True)
+    else:
+      GPIO.output(LED_COLOR,GPIO.LOW)
+      general_color[1] = 0
+      strip.set_color(general_color, 100, True)
 
 
 def btn_preset_cb(channel):
@@ -214,15 +220,15 @@ def main():
     strip = multizone_lights[0]
     print("Selected {}".format(strip.get_label()))
 
+
     # saving the original zones
     original_zones = strip.get_color_zones()
     # the amount of zones in the light
     zone_count = len(original_zones)
     # make a mutable array for current zones
-    current_zones[]
+    current_zones = []
     for i in range(zone_count):
       current_zones.append(list(original_zones[i]))
-
 
   # if there's no light available...
   else:
@@ -281,18 +287,20 @@ def main():
     trim_pot = chan0.value
     # how much has it changed since the last read?
     pot_adjust = abs(trim_pot - last_read)
-    # if pot moved
-    if pot_adjust > tolerance:
-        trim_pot_changed = True
+
 
     # counter
     if count_halfsecond() == True:
       simplecounter += 1
       #print(simplecounter)
 
+    # detect pot move
+    if pot_adjust > tolerance:
+        trim_pot_changed = True
 
-    # if knob was turned
+    # if pot was turned
     if trim_pot_changed:
+        print(trim_pot)
 
         ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
 
@@ -304,8 +312,6 @@ def main():
           # if the color mode is off only temperature is adjusted
           if state_colormode == 0:
             general_color[3] = map(trim_pot, (0, 65535), (2500, 9000))
-            strip.set_color(general_color, 100, True)
-            #strip.set_colortemp(map(trim_pot, (0, 65535), (2500, 9000)), 100, True)
 
           # if the color mode is on, the 3-way switch selects which parameter is changed
           else:
@@ -319,7 +325,8 @@ def main():
             elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
               general_color[1] = trim_pot
 
-            strip.set_color(general_color, 100, True)
+          strip.set_color(general_color, 200, True)
+
 
         # if zone mode is ON
         else:
