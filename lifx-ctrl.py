@@ -43,14 +43,12 @@ SWITCH_COLOR = 6
 state_power = 1
 state_zonemode = 0
 state_colormode = 0
-state_switch_brightness = 0
-state_switch_color = 0
 
 prev_time = math.floor(time.time()*10)
 
 general_color = [0, 0, 65535, 3500]
 temp_color = [0, 0, 65535, 3500]
-zone_set_color = [0, 0, 0, 3500]
+zone_set_color = [0, 0, 65535, 3500]
 
 # these are for the potentiometer
 # create the spi bus
@@ -113,13 +111,20 @@ def btn_colormode_cb(channel):
         print("colormode " + str(state_colormode))
     if state_colormode == 1:
       GPIO.output(LED_COLOR,GPIO.HIGH)
-      general_color[3] = 3500
-      general_color[1] = 65535
-      strip.set_color(general_color, 100, True)
+      if state_zonemode == 0:
+        general_color[3] = 3500
+        general_color[1] = 65535
+        strip.set_color(general_color, 100, True)
+      else:
+        zone_set_color[3] = 3500
+        zone_set_color[1] = 65535
     else:
       GPIO.output(LED_COLOR,GPIO.LOW)
-      general_color[1] = 0
-      strip.set_color(general_color, 100, True)
+      if state_zonemode == 0:
+        general_color[1] = 0
+        strip.set_color(general_color, 100, True)
+      else:
+        zone_set_color[1] = 0
 
 
 def btn_preset_cb(channel):
