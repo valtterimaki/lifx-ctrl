@@ -340,13 +340,13 @@ def main():
           # if the color mode is on, the 3-way switch selects which parameter is changed
           else:
             # if brightness mode
-            if state_switch_brightness == 1:
+            if GPIO.input(SWITCH_BRIGHTNESS):
               zone_set_color[2] = trim_pot
             # if color mode
-            elif state_switch_color == 1:
+            elif GPIO.input(SWITCH_COLOR):
               zone_set_color[0] = trim_pot
             # if saturation mode
-            elif state_switch_brightness == 0 and state_switch_color == 0:
+            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
               zone_set_color[1] = trim_pot
 
           # blinking behaviour
