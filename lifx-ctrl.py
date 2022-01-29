@@ -12,7 +12,7 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from encoder import Encoder
-from urllib.request import urlopen
+import urllib
 
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
@@ -193,9 +193,9 @@ def count_halfsecond():
 
 def internet_on():
     try:
-        urlopen('http://www.google.com', 2)
+        urllib.request.urlopen('http://www.google.com', timeout=1)
         return True
-    except:
+    except urllib.request.URLError:
         return False
 
 
