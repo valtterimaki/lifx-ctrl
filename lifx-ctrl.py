@@ -215,7 +215,7 @@ def main():
 
   # check for internet connection
   for x in range(100):
-    if internet_on():
+    if internet_on(1):
       print("Connectivity OK")
       break
     print("Testing network connection " + x)
