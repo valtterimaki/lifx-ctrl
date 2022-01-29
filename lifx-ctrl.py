@@ -218,7 +218,7 @@ def main():
     if internet_on(1):
       print("Connectivity OK")
       break
-    print("Testing network connection " + x)
+    print("Testing network connection", x)
     sleep(1)
 
   #### lifx init ####
