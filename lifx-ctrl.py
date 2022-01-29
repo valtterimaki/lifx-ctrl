@@ -12,7 +12,7 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from encoder import Encoder
-import urllib
+import urllib.request
 
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
