@@ -213,9 +213,11 @@ def main():
   ph_input_pot_prev = ph_input_pot
 
   # check for internet connection
-  for x in range(60):
+  for x in range(100):
     if internet_on():
+      print("Connectivity OK")
       break
+    print("Testing network connection " + x)
     sleep(1)
 
   #### lifx init ####
