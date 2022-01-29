@@ -12,6 +12,7 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from encoder import Encoder
+import urllib2
 
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
@@ -97,8 +98,8 @@ def btn_zonemode_cb(channel):
 
     if state_zonemode == 1:
       GPIO.output(LED_ZONE,GPIO.HIGH)
-      zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
-      temp_color = zone_set_color
+      #zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+      #temp_color = zone_set_color
     else: GPIO.output(LED_ZONE,GPIO.LOW)
 
     sleep(0.1)
@@ -190,6 +191,12 @@ def count_halfsecond():
     prev_time = math.floor(time.time()*10)
     return True
 
+def internet_on():
+    try:
+        urllib2.urlopen('http://216.58.192.142', timeout=1)
+        return True
+    except urllib2.URLError as err:
+        return False
 
 # main function --------------------------------------------
 
@@ -205,6 +212,11 @@ def main():
   ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
   ph_input_pot_prev = ph_input_pot
 
+  # check for internet connection
+  for x in range(60):
+    if internet_on():
+      break
+    sleep(1)
 
   #### lifx init ####
 
