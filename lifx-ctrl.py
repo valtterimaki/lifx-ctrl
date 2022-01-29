@@ -191,9 +191,9 @@ def count_halfsecond():
     prev_time = math.floor(time.time()*10)
     return True
 
-def internet_on(timeout):
+def internet_on():
     try:
-        urlopen('http://www.google.com', timeout)
+        urlopen('http://www.google.com', 2)
         return True
     except:
         return False
@@ -215,7 +215,7 @@ def main():
 
   # check for internet connection
   for x in range(100):
-    if internet_on(1):
+    if internet_on() == True:
       print("Connectivity OK")
       break
     print("Testing network connection", x)
