@@ -244,8 +244,8 @@ def main():
 
   # get devices
   for x in range(100):
-    multizone_lights = lifx.get_multizone_lights()
-    if len(multizone_lights) > 0:
+    if len(lifx.get_multizone_lights()) > 0:
+      multizone_lights = lifx.get_multizone_lights()
       print("Multizone light discovered")
       break
     print("Discovering multizone lights..", x)
