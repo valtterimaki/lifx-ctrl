@@ -239,7 +239,7 @@ def main():
   # test power control and if connection to lights is ok
   for x in range(100):
     original_powers = lifx.get_power_all_lights()
-    if original_powers != none:
+    if original_powers != None:
       print("Multizone light discovered")
       break
     print("Discovering lights...", x)
