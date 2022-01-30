@@ -216,9 +216,9 @@ def main():
   # check for internet connection
   for x in range(100):
     if internet_on() is True:
-      print("Connectivity OK")
+      print("Internet connection OK")
       break
-    print("Testing network connection", x)
+    print("Testing internet connection", x)
     sleep(1)
 
   #### lifx init ####
@@ -236,9 +236,14 @@ def main():
   # simply makes initial bulb discovery faster.
   lifx = LifxLAN(num_lights)
 
-  # test power control
-  print("Discovering lights...")
-  original_powers = lifx.get_power_all_lights()
+  # test power control and if connection to lights is ok
+  for x in range(100):
+    original_powers = lifx.get_power_all_lights()
+    if original_powers != none:
+      print("Multizone light discovered")
+      break
+    print("Discovering lights...", x)
+    sleep(1)
 
   print ("Starting program.")
 
