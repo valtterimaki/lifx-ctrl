@@ -236,19 +236,20 @@ def main():
   # simply makes initial bulb discovery faster.
   lifx = LifxLAN(num_lights)
 
-  # test power control and if connection to lights is ok
-  for x in range(100):
-    original_powers = lifx.get_power_all_lights()
-    if original_powers != None:
-      print("Multizone light discovered")
-      break
-    print("Discovering lights...", x)
-    sleep(1)
+  # test power control
+  print("Discovering lights...")
+  original_powers = lifx.get_power_all_lights()
 
   print ("Starting program.")
 
   # get devices
-  multizone_lights = lifx.get_multizone_lights()
+  for x in range(100):
+    multizone_lights = lifx.get_multizone_lights()
+    if len(multizone_lights) > 0:
+      print("Multizone light discovered")
+      break
+    print("Discovering multizone lights..", x)
+    sleep(1)
 
   # finding the correct light to operate on
   if len(multizone_lights) > 0:
