@@ -417,7 +417,7 @@ def main():
         #print(simplecounter)
       if simplecounter > 3:
         prst = strip.get_color_zones(0, zone_count)
-        np.savetxt("preset_" + str(selected_preset) + ".txt", pres, fmt='%d')
+        np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
 
 
     elif GPIO.input(BTN_PRESET) == 0:
