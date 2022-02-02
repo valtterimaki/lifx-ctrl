@@ -13,6 +13,7 @@ import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from encoder import Encoder
 import urllib.request
+import numpy as np
 
 # GPIO library, note that the except part is for enabling dummy development on mac/pc
 try:
@@ -52,6 +53,8 @@ general_color = [0, 0, 65535, 3500]
 temp_color = [0, 0, 65535, 3500]
 zone_set_color = [0, 0, 65535, 3500]
 selected_zone = 0
+
+selected_preset = 0;
 
 # these are for the potentiometer
 # create the spi bus
@@ -133,13 +136,22 @@ def btn_colormode_cb(channel):
 
     sleep(0.1)
 
+    ## use this for reboot later
+    #os.execl(sys.executable, sys.executable, *sys.argv)
+
 
 def btn_preset_cb(channel):
-  if GPIO.input(BTN_PRESET) == 1:
+  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     print("Preset button pressed!")
     GPIO.output(LED_PRESET, GPIO.HIGH)
-    # this can be used for reset, make some rule for this
-    #os.execl(sys.executable, sys.executable, *sys.argv)
+
+    prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
+    strip.set_zone_colors(prst, 0, True)
+    if selected_preset < 3:
+      selected_preset += 1
+    else:
+      selected_preset = 0
+
   else:
     GPIO.output(LED_PRESET, GPIO.LOW)
 
@@ -326,11 +338,6 @@ def main():
     pot_adjust = abs(trim_pot - last_read)
 
 
-    # counter
-    if count_halfsecond() == True:
-      simplecounter += 1
-      #print(simplecounter)
-
     # detect pot move
     if pot_adjust > tolerance:
         trim_pot_changed = True
@@ -370,7 +377,7 @@ def main():
 
 
     # if zone mode is ON
-    else:
+    elif state_zonemode == 1:
 
         # if pot was turned
         if trim_pot_changed:
@@ -400,21 +407,20 @@ def main():
           # save the potentiometer reading for the next loop
           last_read = trim_pot
 
-        # blinking behaviour
-        """
-        if simplecounter >= 2:
-          simplecounter = 0
-          temp_color = zone_set_color
-          temp_color[2] = 0
-          strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
-          #print(temp_color)
-        if simplecounter == 1 and temp_color[2] == 0:
-          temp_color = zone_set_color
-          temp_color[2] = 65535
-          strip.set_zone_color(selected_zone, selected_zone, temp_color, 0, True, 1)
-          #print(temp_color)
-        """
-        # TODO preset button behaviour
+
+    ## preset save
+
+    if GPIO.input(BTN_PRESET) == 1:
+      # counter
+      if count_halfsecond() == True:
+        simplecounter += 1
+        #print(simplecounter)
+      if simplecounter > 3:
+        prst = strip.get_color_zones(0, zone_count)
+        np.savetxt("preset_" + str(selected_preset) + ".txt", pres, fmt='%d')
+
+
+    elif GPIO.input(BTN_PRESET) == 0:
 
 
 
