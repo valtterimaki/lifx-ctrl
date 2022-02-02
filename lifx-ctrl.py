@@ -406,7 +406,7 @@ def main():
               zone_set_color[1] = trim_pot
 
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-          print("Preset saved!!")
+
 
           # save the potentiometer reading for the next loop
           last_read = trim_pot
@@ -422,6 +422,7 @@ def main():
       if simplecounter > 3:
         prst = strip.get_color_zones(0, zone_count)
         np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
+        print("Preset saved!!")
 
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
