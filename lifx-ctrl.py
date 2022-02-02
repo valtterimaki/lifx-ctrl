@@ -141,7 +141,7 @@ def btn_colormode_cb(channel):
 
 
 def btn_preset_cb(channel):
-  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
+  if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
     global selected_preset
 
     print("Preset button pressed!")
@@ -406,6 +406,7 @@ def main():
               zone_set_color[1] = trim_pot
 
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+          print("Preset saved!!")
 
           # save the potentiometer reading for the next loop
           last_read = trim_pot
