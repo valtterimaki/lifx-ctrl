@@ -142,6 +142,8 @@ def btn_colormode_cb(channel):
 
 def btn_preset_cb(channel):
   if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
+    global selected_preset
+
     print("Preset button pressed!")
     GPIO.output(LED_PRESET, GPIO.HIGH)
 
@@ -221,6 +223,7 @@ def main():
   ########################
 
   global zone_count
+  global selected_preset
 
   ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
   ph_input_pot_prev = ph_input_pot
