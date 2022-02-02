@@ -419,8 +419,9 @@ def main():
         prst = strip.get_color_zones(0, zone_count)
         np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
 
-
     elif GPIO.input(BTN_PRESET) == 0:
+      if simplecounter > 0:
+        simplecounter = 0
 
 
 
