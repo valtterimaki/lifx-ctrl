@@ -140,12 +140,12 @@ def btn_colormode_cb(channel):
     #os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def btn_preset_cb(channel):
-  if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
+def btn_preset_dn_cb(channel):
+  if state_power == 1:
     global selected_preset
 
     print("Preset button pressed!")
-    GPIO.output(LED_PRESET, GPIO.HIGH)
+    GPIO.output(LED_PRESET, GPIO.LOW)
 
     prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
     strip.set_zone_colors(prst, 0, True)
@@ -154,8 +154,9 @@ def btn_preset_cb(channel):
     else:
       selected_preset = 0
 
-  else:
-    GPIO.output(LED_PRESET, GPIO.LOW)
+def btn_preset_up_cb(channel):
+  if state_power == 1:
+    GPIO.output(LED_PRESET, GPIO.HIGH)
 
 
 def enc_cb(value, direction):
@@ -305,7 +306,8 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_dn_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.RISING, callback=btn_preset_up_cb, bouncetime=10)
 
   enc = Encoder(21, 12, enc_cb)
 
@@ -406,7 +408,7 @@ def main():
               zone_set_color[1] = trim_pot
 
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-          print("Preset saved!!")
+
 
           # save the potentiometer reading for the next loop
           last_read = trim_pot
@@ -422,6 +424,8 @@ def main():
       if simplecounter > 3:
         prst = strip.get_color_zones(0, zone_count)
         np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
+        print("Preset saved to")
+        print(selected_preset)
 
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
