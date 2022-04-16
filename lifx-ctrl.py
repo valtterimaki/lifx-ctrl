@@ -253,9 +253,9 @@ def main():
 
   # test power control
   print("Discovering lights...")
-  try
+  try:
     original_powers = lifx.get_power_all_lights()
-  except
+  except:
     print("Couldn't get powers from lights, something might be wrong.")
 
   print ("Starting program.")
@@ -427,7 +427,7 @@ def main():
           prst = strip.get_color_zones(0, zone_count)
         except:
           print("couldn't get zones for preset")
-        else
+        else:
           np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
           print("Preset saved to")
           print(selected_preset)
