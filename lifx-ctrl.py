@@ -426,7 +426,6 @@ def main():
         np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
         print("Preset saved to")
         print(selected_preset)
-
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
         simplecounter = 0
