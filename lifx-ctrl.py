@@ -253,7 +253,10 @@ def main():
 
   # test power control
   print("Discovering lights...")
-  original_powers = lifx.get_power_all_lights()
+  try
+    original_powers = lifx.get_power_all_lights()
+  except
+    print("Couldn't get powers from lights, something might be wrong.")
 
   print ("Starting program.")
 
