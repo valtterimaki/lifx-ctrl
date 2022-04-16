@@ -364,7 +364,7 @@ def main():
           if state_colormode == 0:
             if trim_pot <= 31767:
               general_color[3] = map(trim_pot, (0, 31767), (2500, 3500))
-            elif trim_pot > 33767
+            elif trim_pot > 33767:
               general_color[3] = map(trim_pot, (33767, 65535), (3500, 9000))
 
           # if the color mode is on, the 3-way switch selects which parameter is changed
