@@ -140,7 +140,7 @@ def btn_colormode_cb(channel):
     #os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def btn_preset_dn_cb(channel):
+def btn_preset_cb(channel):
   if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
     global selected_preset
 
