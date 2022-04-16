@@ -79,12 +79,12 @@ def btn_power_on_cb(channel):
     print("Power switch on!")
     strip.set_power("on", True)
     state_power = 1
-    print("power " + str(state_power))
+    print("power set to " + str(state_power))
   else:
     print("Power switch off!")
     strip.set_power("off", True)
     state_power = 0
-    print("power " + str(state_power))
+    print("power set to " + str(state_power))
 
 
 def btn_zonemode_cb(channel):
