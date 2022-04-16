@@ -141,7 +141,7 @@ def btn_colormode_cb(channel):
 
 
 def btn_preset_dn_cb(channel):
-  if state_power == 1:
+  if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
     global selected_preset
 
     print("Preset button pressed!")
@@ -154,8 +154,7 @@ def btn_preset_dn_cb(channel):
     else:
       selected_preset = 0
 
-def btn_preset_up_cb(channel):
-  if state_power == 1:
+  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     GPIO.output(LED_PRESET, GPIO.HIGH)
 
 
@@ -306,8 +305,7 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_dn_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.RISING, callback=btn_preset_up_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
 
   enc = Encoder(21, 12, enc_cb)
 
