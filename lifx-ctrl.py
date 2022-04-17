@@ -167,8 +167,19 @@ def enc_cb(value, direction):
 
     # if zone mode is OFF
     if state_zonemode == 0:
+
+      rand_hue = 0
+      prob = random.random()
+      if prob < 0.3:
+          rand_hue = random.randint(0, 65535)
+      elif prob <= 0.6:
+          rand_hue = random.randint(52428, 58981)
+      else:
+          rand_hue = random.randint(0, 16383)
+
+      rand_color = [rand_hue, random.randint(0, 65535), 65535, 3500]
+
       rand_zone = random.randint(0, zone_count)
-      rand_color = [random.randint(0, 65535), random.randint(0, 65535), 65535, 3500]
       strip.set_zone_color(rand_zone, rand_zone, rand_color, 0, 1, 1)
 
     # if zone mode is ON
