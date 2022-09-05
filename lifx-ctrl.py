@@ -9,8 +9,6 @@ import math
 import busio
 import digitalio
 import board
-import adafruit_mcp3xxx.mcp3008 as MCP
-from adafruit_mcp3xxx.analog_in import AnalogIn
 from encoder import Encoder
 import urllib.request
 import numpy as np
@@ -55,17 +53,6 @@ zone_set_color = [0, 0, 65535, 3500]
 selected_zone = 0
 
 selected_preset = 0;
-
-# these are for the potentiometer
-# create the spi bus
-spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
-# create the cs (chip select)
-cs = digitalio.DigitalInOut(board.D22)
-# create the mcp object
-mcp = MCP.MCP3008(spi, cs)
-# create an analog input channel on pin 0
-chan0 = AnalogIn(mcp, MCP.P0)
-
 
 
 ########################################################################
@@ -198,8 +185,48 @@ def enc_cb(value, direction):
 
   print("* New value: {}, Direction: {}".format(value, direction))
 
-# TODO add preset change here at some point
 
+def enc_vb(value, direction):
+  print("Encoder turned!")
+  global selected_zone
+
+  # first of all, check if lifx power is on or not and do nothing if not
+  if state_power == 1:
+
+    # check encoder direction and assign + or -
+    if direction == "R":
+      dir = 1
+    if direction == "L":
+      dir = -1
+
+    # if zone mode is OFF
+    if state_zonemode == 0:
+
+      # if the color mode is off only temperature is adjusted
+      if state_colormode == 0:
+        general_color[3] += (10 * dir)
+      if general_color[3] > 9000:
+        general_color[3] = 9000
+      if general_color[3] < 2500:
+        general_color[3] = 2500
+
+
+      # if the color mode is on, the 3-way switch selects which parameter is changed
+#      else:
+        # if brightness mode
+#        if GPIO.input(SWITCH_BRIGHTNESS):
+#          general_color[2] = trim_pot
+        # if color mode
+#        elif GPIO.input(SWITCH_COLOR):
+#          general_color[0] = trim_pot
+        # if saturation mode
+#        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+#          general_color[1] = trim_pot
+
+      strip.set_color(general_color, 200, True)
+
+  print("* New value: {}, Direction: {}".format(value, direction))
+  print(dir)
 
 
 ##################################
@@ -235,9 +262,6 @@ def main():
 
   global zone_count
   global selected_preset
-
-  ph_input_pot = 0.5 # TODO For now, i'm assuming the pot range as 0-1. Correct this as the actual connections are made.
-  ph_input_pot_prev = ph_input_pot
 
   # check for internet connection
   for x in range(100):
@@ -301,7 +325,6 @@ def main():
     print("No multizone lights available")
 
 
-
   #### GPIO setups ####
 
   GPIO.setmode(GPIO.BCM)
@@ -321,12 +344,8 @@ def main():
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
 
-  enc = Encoder(21, 12, enc_cb)
-
-  last_read = 0   # this keeps track of the last potentiometer value
-  tolerance = 550 # to keep from being jittery we'll only change
-                # volume when the pot has moved a significant amount
-                # on a 16-bit ADC
+  enc1 = Encoder(25, 8, enc_vb)
+  enc2 = Encoder(21, 12, enc_cb)
 
 
   #### others ####
@@ -347,89 +366,77 @@ def main():
 
   while True:
 
-    # we'll assume that the pot didn't move
-    trim_pot_changed = False
-    # read the analog pin
-    trim_pot = chan0.value
-    # how much has it changed since the last read?
-    pot_adjust = abs(trim_pot - last_read)
-
-
-    # detect pot move
-    if pot_adjust > tolerance:
-        trim_pot_changed = True
-
     ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
 
     # if zone mode is OFF
-    if state_zonemode == 0:
-
-        # if pot was turned
-        if trim_pot_changed:
-
-          print(trim_pot)
-
-          # Knob behaviour
-
-          # if the color mode is off only temperature is adjusted
-          if state_colormode == 0:
-            if trim_pot <= 30767:
-              general_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
-            elif trim_pot > 34767:
-              general_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
-
-          # if the color mode is on, the 3-way switch selects which parameter is changed
-          else:
-            # if brightness mode
-            if GPIO.input(SWITCH_BRIGHTNESS):
-              general_color[2] = trim_pot
-            # if color mode
-            elif GPIO.input(SWITCH_COLOR):
-              general_color[0] = trim_pot
-            # if saturation mode
-            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-              general_color[1] = trim_pot
-
-          strip.set_color(general_color, 200, True)
-
-          # save the potentiometer reading for the next loop
-          last_read = trim_pot
+#    if state_zonemode == 0:
+#
+#        # if pot was turned
+#        if trim_pot_changed:
+#
+#          print(trim_pot)
+#
+#          # Knob behaviour
+#
+#          # if the color mode is off only temperature is adjusted
+#          if state_colormode == 0:
+#            if trim_pot <= 30767:
+#              general_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
+#            elif trim_pot > 34767:
+#              general_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
+#
+#          # if the color mode is on, the 3-way switch selects which parameter is changed
+#          else:
+#            # if brightness mode
+#            if GPIO.input(SWITCH_BRIGHTNESS):
+#              general_color[2] = trim_pot
+#            # if color mode
+#            elif GPIO.input(SWITCH_COLOR):
+#              general_color[0] = trim_pot
+#            # if saturation mode
+#            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+#              general_color[1] = trim_pot
+#
+#          strip.set_color(general_color, 200, True)
+#
+#          # save the potentiometer reading for the next loop
+#          last_read = trim_pot
 
 
     # if zone mode is ON
-    elif state_zonemode == 1:
-
-        # if pot was turned
-        if trim_pot_changed:
-
-          print(trim_pot)
-
-          # Knob behaviour
-
-          # if the color mode is off only temperature is adjusted
-          if state_colormode == 0:
-            if trim_pot <= 30767:
-              zone_set_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
-            elif trim_pot > 34767:
-              zone_set_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
-
-          # if the color mode is on, the 3-way switch selects which parameter is changed
-          else:
-            # if brightness mode
-            if GPIO.input(SWITCH_BRIGHTNESS):
-              zone_set_color[2] = trim_pot
-            # if color mode
-            elif GPIO.input(SWITCH_COLOR):
-              zone_set_color[0] = trim_pot
-            # if saturation mode
-            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-              zone_set_color[1] = trim_pot
-
-          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-
-
-          # save the potentiometer reading for the next loop
-          last_read = trim_pot
+#    elif state_zonemode == 1:
+#
+#        # if pot was turned
+#        if trim_pot_changed:
+#
+#          print(trim_pot)
+#
+#          # Knob behaviour
+#
+#          # if the color mode is off only temperature is adjusted
+#          if state_colormode == 0:
+#            if trim_pot <= 30767:
+#              zone_set_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
+#            elif trim_pot > 34767:
+#              zone_set_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
+#
+#          # if the color mode is on, the 3-way switch selects which parameter is changed
+#          else:
+#            # if brightness mode
+#            if GPIO.input(SWITCH_BRIGHTNESS):
+#              zone_set_color[2] = trim_pot
+#            # if color mode
+#            elif GPIO.input(SWITCH_COLOR):
+#              zone_set_color[0] = trim_pot
+#            # if saturation mode
+#            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+#              zone_set_color[1] = trim_pot
+#
+#          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+#
+#
+#          # save the potentiometer reading for the next loop
+#          last_read = trim_pot
 
 
     ## preset save
