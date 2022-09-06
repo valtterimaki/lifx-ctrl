@@ -151,12 +151,14 @@ def btn_enc_cb(channel):
   if state_power == 1 and GPIO.input(BTN_ENC) == 0:
     print("Encoder button pressed!")
     global temp_colors
+    global temp_colors_status
 
     # if zone mode is ON
     if state_zonemode == 1:
       try:
         temp_colors = strip.get_color_zones(0, zone_count)
         strip.set_color(zone_set_color, 200, True)
+        temp_colors_status = 1
       except:
         print("couldn't get zones for preview")
 
@@ -164,11 +166,9 @@ def btn_enc_cb(channel):
 
     # if zone mode is ON
     if state_zonemode == 1:
-      try:
-        strip.set_zone_colors(temp_colors, 0, True)
-      except:
-        print("no zone colors saved")
-
+        if temp_colors_status == 1:
+          strip.set_zone_colors(temp_colors, 0, True)
+          temp_colors_status = 0
 
 def enc_cb(value, direction):
   print("Encoder turned!")
