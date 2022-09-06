@@ -92,7 +92,10 @@ def btn_zonemode_cb(channel):
       GPIO.output(LED_ZONE,GPIO.HIGH)
       #zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
       #temp_color = zone_set_color
-    else: GPIO.output(LED_ZONE,GPIO.LOW)
+    else:
+      GPIO.output(LED_ZONE,GPIO.LOW)
+      ## make sure preview mode is off
+      state_preview = 1
 
     sleep(0.1)
 
@@ -148,27 +151,26 @@ def btn_preset_cb(channel):
 
 
 def btn_enc_cb(channel):
-  if state_power == 1 and GPIO.input(BTN_ENC) == 0:
+
+  # if zone mode is ON
+  if state_zonemode == 1:
     print("Encoder button pressed!")
     global temp_colors
-    global temp_colors_status
+    global state_preview
 
-    # if zone mode is ON
-    if state_zonemode == 1:
-      try:
-        temp_colors = strip.get_color_zones(0, zone_count)
-        strip.set_color(zone_set_color, 200, True)
-        temp_colors_status = 1
-      except:
-        print("couldn't get zones for preview")
+    if state_power == 1 and GPIO.input(BTN_ENC) == 0:
+      if state_preview == 0:
+        try:
+          temp_colors = strip.get_color_zones(0, zone_count)
+          strip.set_color(zone_set_color, 200, True)
+          state_preview = 1
+        except:
+          print("couldn't get zones for preview")
+      else:
+        strip.set_zone_colors(temp_colors, 0, True)
+        state_preview = 0
 
-  if state_power == 1 and GPIO.input(BTN_ENC) == 1:
 
-    # if zone mode is ON
-    if state_zonemode == 1:
-        if temp_colors_status == 1:
-          strip.set_zone_colors(temp_colors, 0, True)
-          temp_colors_status = 0
 
 def enc_cb(value, direction):
   print("Encoder turned!")
@@ -195,7 +197,7 @@ def enc_cb(value, direction):
       strip.set_zone_color(rand_zone, rand_zone, rand_color, 0, 1, 1)
 
     # if zone mode is ON
-    else:
+    elif state_zonemode == 1 and state_preview == 0:
       if direction == "R":
         if selected_zone < zone_count:
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
@@ -265,7 +267,10 @@ def enc_vb(value, direction):
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
           zone_set_color[1] = clamp(zone_set_color[1] + (100 * dir), 0, 65535)
 
-      strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+      if state_preview == 0:
+        strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+      else:
+        strip.set_color(zone_set_color, 200, True)
 
 
   print("* New value encoder 1: {}, Direction: {}".format(value, direction))
@@ -419,6 +424,10 @@ def main():
   #######################################
 
   while True:
+
+    ## check some states
+    if state_zonemode == 0 and state_preview == 1:
+      state_preview == 1
 
     ## preset save
 
