@@ -183,7 +183,7 @@ def enc_cb(value, direction):
           selected_zone -= 1
           print("selected zone " + str(selected_zone))
 
-  print("* New value: {}, Direction: {}".format(value, direction))
+  print("* New value encoder 2: {}, Direction: {}".format(value, direction))
 
 
 def enc_vb(value, direction):
@@ -196,7 +196,7 @@ def enc_vb(value, direction):
     # check encoder direction and assign + or -
     if direction == "R":
       dir = 1
-    if direction == "L":
+    else: # better than elif direction == "L":
       dir = -1
 
     # if zone mode is OFF
@@ -204,28 +204,45 @@ def enc_vb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        general_color[3] += (10 * dir)
-      if general_color[3] > 9000:
-        general_color[3] = 9000
-      if general_color[3] < 2500:
-        general_color[3] = 2500
-
+        general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
 
       # if the color mode is on, the 3-way switch selects which parameter is changed
-#      else:
+      else:
         # if brightness mode
-#        if GPIO.input(SWITCH_BRIGHTNESS):
-#          general_color[2] = trim_pot
+        if GPIO.input(SWITCH_BRIGHTNESS):
+          general_color[2] = clamp(general_color[2] + (100 * dir), 0, 65535)
         # if color mode
-#        elif GPIO.input(SWITCH_COLOR):
-#          general_color[0] = trim_pot
+        elif GPIO.input(SWITCH_COLOR):
+          general_color[0] = clamp(general_color[0] + (100 * dir), 0, 65535)
         # if saturation mode
-#        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-#          general_color[1] = trim_pot
+        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+          general_color[1] = clamp(general_color[1] + (100 * dir), 0, 65535)
 
       strip.set_color(general_color, 200, True)
 
-  print("* New value: {}, Direction: {}".format(value, direction))
+    # if zone mode is ON
+    else:
+
+      # if the color mode is off only temperature is adjusted
+      if state_colormode == 0:
+        zone_set_color = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
+
+      # if the color mode is on, the 3-way switch selects which parameter is changed
+      else:
+        # if brightness mode
+        if GPIO.input(SWITCH_BRIGHTNESS):
+          zone_set_color = clamp(zone_set_color[2] + (100 * dir), 0, 65535)
+        # if color mode
+        elif GPIO.input(SWITCH_COLOR):
+          zone_set_color = clamp(zone_set_color[0] + (100 * dir), 0, 65535)
+        # if saturation mode
+        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+          zone_set_color = clamp(zone_set_color[1] + (100 * dir), 0, 65535)
+
+      strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+
+
+  print("* New value encoder 1: {}, Direction: {}".format(value, direction))
   print(dir)
 
 
@@ -249,6 +266,15 @@ def internet_on():
         return True
     except urllib.request.URLError:
         return False
+
+def clamp(n, minn, maxn):
+    if n < minn:
+        return minn
+    elif n > maxn:
+        return maxn
+    else:
+        return n
+
 
 
 # main function --------------------------------------------
