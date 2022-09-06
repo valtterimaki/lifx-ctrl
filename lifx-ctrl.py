@@ -154,7 +154,6 @@ def btn_enc_cb(channel):
 def enc_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
-  global zone_set_color
 
   # first of all, check if lifx power is on or not and do nothing if not
   if state_power == 1:
@@ -233,19 +232,19 @@ def enc_vb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        zone_set_color = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
+        zone_set_color[3] = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
 
       # if the color mode is on, the 3-way switch selects which parameter is changed
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          zone_set_color = clamp(zone_set_color[2] + (100 * dir), 0, 65535)
+          zone_set_color[2] = clamp(zone_set_color[2] + (100 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          zone_set_color = clamp(zone_set_color[0] + (100 * dir), 0, 65535)
+          zone_set_color[0] = clamp(zone_set_color[0] + (100 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-          zone_set_color = clamp(zone_set_color[1] + (100 * dir), 0, 65535)
+          zone_set_color[1] = clamp(zone_set_color[1] + (100 * dir), 0, 65535)
 
       strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
 
