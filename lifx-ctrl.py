@@ -154,6 +154,7 @@ def btn_enc_cb(channel):
 def enc_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
+  global zone_set_color
 
   # first of all, check if lifx power is on or not and do nothing if not
   if state_power == 1:
@@ -195,6 +196,7 @@ def enc_cb(value, direction):
 def enc_vb(value, direction):
   print("Encoder turned!")
   global selected_zone
+  global zone_set_color
 
   # first of all, check if lifx power is on or not and do nothing if not
   if state_power == 1:
