@@ -239,13 +239,13 @@ def enc_vb(value, direction):
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          general_color[2] = clamp(general_color[2] + (1000 * dir), 0, 65535)
+          general_color[2] = clamp(general_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          general_color[0] = clampLoop(general_color[0] + (500 * dir), 0, 65535)
+          general_color[0] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-          general_color[1] = clamp(general_color[1] + (1000 * dir), 0, 65535)
+          general_color[1] = clamp(general_color[1] + (1024 * dir), 0, 65535)
 
       strip.set_color(general_color, 200, True)
 
@@ -260,13 +260,13 @@ def enc_vb(value, direction):
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          zone_set_color[2] = clamp(zone_set_color[2] + (1000 * dir), 0, 65535)
+          zone_set_color[2] = clamp(zone_set_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          zone_set_color[0] = clampLoop(zone_set_color[0] + (500 * dir), 0, 65535)
+          zone_set_color[0] = clampLoop(zone_set_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-          zone_set_color[1] = clamp(zone_set_color[1] + (1000 * dir), 0, 65535)
+          zone_set_color[1] = clamp(zone_set_color[1] + (1024 * dir), 0, 65535)
 
       if state_preview == 0:
         strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
