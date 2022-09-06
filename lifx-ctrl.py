@@ -45,6 +45,7 @@ BTN_ENC = 26
 state_power = 1
 state_zonemode = 0
 state_colormode = 0
+state_preview = 0
 
 prev_time = math.floor(time.time()*10)
 
@@ -149,6 +150,24 @@ def btn_preset_cb(channel):
 def btn_enc_cb(channel):
   if state_power == 1 and GPIO.input(BTN_ENC) == 0:
     print("Encoder button pressed!")
+    global temp_colors
+
+    # if zone mode is ON
+    if state_zonemode == 1:
+      try:
+        temp_colors = strip.get_color_zones(0, zone_count)
+        strip.set_color(zone_set_color, 200, True)
+      except:
+        print("couldn't get zones for preview")
+
+  if state_power == 1 and GPIO.input(BTN_ENC) == 1:
+
+    # if zone mode is ON
+    if state_zonemode == 1:
+      try:
+        strip.set_zone_colors(temp_colors, 0, True)
+      except:
+        print("no zone colors saved")
 
 
 def enc_cb(value, direction):
@@ -183,7 +202,7 @@ def enc_cb(value, direction):
           selected_zone += 1
           print("selected zone " + str(selected_zone))
           print(zone_set_color)
-      if direction == "L":
+      else:
         if selected_zone > 0:
           strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
           selected_zone -= 1
@@ -401,79 +420,6 @@ def main():
 
   while True:
 
-    ## checking if strip is in zone mode or default mode and determine the behaviour of the controls in both
-
-    # if zone mode is OFF
-#    if state_zonemode == 0:
-#
-#        # if pot was turned
-#        if trim_pot_changed:
-#
-#          print(trim_pot)
-#
-#          # Knob behaviour
-#
-#          # if the color mode is off only temperature is adjusted
-#          if state_colormode == 0:
-#            if trim_pot <= 30767:
-#              general_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
-#            elif trim_pot > 34767:
-#              general_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
-#
-#          # if the color mode is on, the 3-way switch selects which parameter is changed
-#          else:
-#            # if brightness mode
-#            if GPIO.input(SWITCH_BRIGHTNESS):
-#              general_color[2] = trim_pot
-#            # if color mode
-#            elif GPIO.input(SWITCH_COLOR):
-#              general_color[0] = trim_pot
-#            # if saturation mode
-#            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-#              general_color[1] = trim_pot
-#
-#          strip.set_color(general_color, 200, True)
-#
-#          # save the potentiometer reading for the next loop
-#          last_read = trim_pot
-
-
-    # if zone mode is ON
-#    elif state_zonemode == 1:
-#
-#        # if pot was turned
-#        if trim_pot_changed:
-#
-#          print(trim_pot)
-#
-#          # Knob behaviour
-#
-#          # if the color mode is off only temperature is adjusted
-#          if state_colormode == 0:
-#            if trim_pot <= 30767:
-#              zone_set_color[3] = map(trim_pot, (0, 30767), (2500, 3500))
-#            elif trim_pot > 34767:
-#              zone_set_color[3] = map(trim_pot, (34767, 65535), (3500, 9000))
-#
-#          # if the color mode is on, the 3-way switch selects which parameter is changed
-#          else:
-#            # if brightness mode
-#            if GPIO.input(SWITCH_BRIGHTNESS):
-#              zone_set_color[2] = trim_pot
-#            # if color mode
-#            elif GPIO.input(SWITCH_COLOR):
-#              zone_set_color[0] = trim_pot
-#            # if saturation mode
-#            elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-#              zone_set_color[1] = trim_pot
-#
-#          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-#
-#
-#          # save the potentiometer reading for the next loop
-#          last_read = trim_pot
-
-
     ## preset save
 
     if GPIO.input(BTN_PRESET) == 1:
@@ -490,11 +436,10 @@ def main():
           np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
           print("Preset saved to")
           print(selected_preset)
+
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
         simplecounter = 0
-
-
 
     sleep(0.01)
 
