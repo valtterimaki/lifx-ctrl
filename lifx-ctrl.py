@@ -39,7 +39,7 @@ LED_COLOR = 20
 LED_PRESET = 24
 SWITCH_BRIGHTNESS = 5
 SWITCH_COLOR = 6
-BTN_ENC = 4
+BTN_ENC = 26
 
 # set state variables
 state_power = 1
@@ -378,7 +378,7 @@ def main():
   GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ENC, GPIO.BOTH, callback=btn_enc_cb, bouncetime=10)
 
-  enc1 = Encoder(25, 8, enc_vb)
+  enc1 = Encoder(25, 4, enc_vb)
   enc2 = Encoder(21, 12, enc_cb)
 
 
