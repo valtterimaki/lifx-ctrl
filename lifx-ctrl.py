@@ -39,6 +39,7 @@ LED_COLOR = 20
 LED_PRESET = 24
 SWITCH_BRIGHTNESS = 5
 SWITCH_COLOR = 6
+BTN_ENC = 4
 
 # set state variables
 state_power = 1
@@ -143,6 +144,11 @@ def btn_preset_cb(channel):
 
   if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     GPIO.output(LED_PRESET, GPIO.HIGH)
+
+
+def btn_enc_cb(channel):
+  if state_power == 1 and GPIO.input(BTN_ENC) == 0:
+    print("Encoder button pressed!")
 
 
 def enc_cb(value, direction):
@@ -361,6 +367,7 @@ def main():
   GPIO.setup(BTN_PRESET, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_BRIGHTNESS, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
   GPIO.setup(SWITCH_COLOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+  GPIO.setup(BTN_ENC, GPIO.IN, pull_up_down=GPIO.PUD_UP)
   GPIO.setup(LED_ZONE,GPIO.OUT)
   GPIO.setup(LED_COLOR,GPIO.OUT)
   GPIO.setup(LED_PRESET,GPIO.OUT)
@@ -369,6 +376,7 @@ def main():
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_ENC, GPIO.BOTH, callback=btn_enc_cb, bouncetime=10)
 
   enc1 = Encoder(25, 8, enc_vb)
   enc2 = Encoder(21, 12, enc_cb)
