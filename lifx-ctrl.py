@@ -139,7 +139,7 @@ def btn_colormode_cb(channel):
     #os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def btn_preset_cb(channel):
+def btn_preset_dn_cb(channel):
   if state_power == 1:
     global selected_preset
     global state_preset_save
@@ -148,13 +148,24 @@ def btn_preset_cb(channel):
     print(GPIO.input(BTN_PRESET))
 
     # if preset save state is on
-    if state_preset_save == 1 and GPIO.input(BTN_PRESET) == 1:
+    if state_preset_save == 1:
       np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
       print("Preset saved to")
       print(selected_preset)
       state_preset_save = 0
 
-    elif state_preset_save == 0 and GPIO.input(BTN_PRESET) == 0:
+  #if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
+    #GPIO.output(LED_PRESET, GPIO.HIGH)
+
+def btn_preset_up_cb(channel):
+  if state_power == 1:
+    global selected_preset
+    global state_preset_save
+    global prst
+    print("Preset button released!")
+    print(GPIO.input(BTN_PRESET))
+
+    if state_preset_save == 0:
       #GPIO.output(LED_PRESET, GPIO.LOW)
       print("using preset")
       print(selected_preset)
@@ -180,18 +191,17 @@ def btn_enc_cb(channel):
       global temp_colors
       global state_preview
 
-      if state_power == 1 and GPIO.input(BTN_ENC) == 0:
-        if state_preview == 0:
-          try:
-            temp_colors = strip.get_color_zones(0, zone_count)
-            strip.set_color(zone_set_color, 200, True)
-            state_preview = 1
-          except:
-            print("couldn't get zones for preview")
-        else:
-          strip.set_zone_colors(temp_colors, 0, True)
-          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-          state_preview = 0
+      if state_preview == 0:
+        try:
+          temp_colors = strip.get_color_zones(0, zone_count)
+          strip.set_color(zone_set_color, 200, True)
+          state_preview = 1
+        except:
+          print("couldn't get zones for preview")
+      else:
+        strip.set_zone_colors(temp_colors, 0, True)
+        strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+        state_preview = 0
 
 
 def enc2_cb(value, direction):
@@ -445,8 +455,9 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_ENC, GPIO.BOTH, callback=btn_enc_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.RISING, callback=btn_preset_dn_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_up_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
   enc1 = Encoder(4, 25, enc1_cb)
   enc2 = Encoder(21, 12, enc2_cb)
