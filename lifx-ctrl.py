@@ -140,7 +140,7 @@ def btn_colormode_cb(channel):
 
 
 def btn_preset_cb(channel):
-  if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
+  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     global selected_preset
     global state_preset_save
     print("Preset button pressed!")
@@ -153,7 +153,7 @@ def btn_preset_cb(channel):
       state_preset_save = 0
 
     else:
-      GPIO.output(LED_PRESET, GPIO.LOW)
+      #GPIO.output(LED_PRESET, GPIO.LOW)
 
       prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
       strip.set_zone_colors(prst, 0, True)
@@ -162,8 +162,8 @@ def btn_preset_cb(channel):
       else:
         selected_preset = 0
 
-  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
-    GPIO.output(LED_PRESET, GPIO.HIGH)
+  #if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
+    #GPIO.output(LED_PRESET, GPIO.HIGH)
 
 
 def btn_enc_cb(channel):
