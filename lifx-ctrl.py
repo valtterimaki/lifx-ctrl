@@ -478,11 +478,13 @@ def main():
         #print(simplecounter)
       if simplecounter > 3:
 
+        print("trying preset mode")
       # tallenna tilapäisesti muutujaan nykytila
         try:
           prst = strip.get_color_zones(0, zone_count)
         # state_preset_save -> ON
           state_preset_save = 1
+          print("preset mode active")
         # disabloi kaikki muut napit ja toiminnot paitsi enc1
           ##### done
         # aseta selected_preset -> 0
