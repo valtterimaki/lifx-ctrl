@@ -140,20 +140,20 @@ def btn_colormode_cb(channel):
 
 
 def btn_preset_cb(channel):
-  if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
+  if state_power == 1:
     global selected_preset
     global state_preset_save
     global prst
     print("Preset button pressed!")
 
     # if preset save state is on
-    if state_preset_save == 1:
+    if state_preset_save == 1 and GPIO.input(BTN_PRESET) == 1:
       np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
       print("Preset saved to")
       print(selected_preset)
       state_preset_save = 0
 
-    else:
+    elif state_preset_save == 0 and GPIO.input(BTN_PRESET) == 0:
       #GPIO.output(LED_PRESET, GPIO.LOW)
       print("using preset")
       print(selected_preset)
