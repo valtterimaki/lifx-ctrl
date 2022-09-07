@@ -236,6 +236,7 @@ def enc1_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
   global zone_set_color
+  global selected_preset
 
   # first of all, check if lifx power is on
   if state_power == 1:
