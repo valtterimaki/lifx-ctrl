@@ -476,7 +476,7 @@ def main():
       if count_halfsecond() == True:
         simplecounter += 1
         #print(simplecounter)
-      if simplecounter > 3:
+      if simplecounter > 3 and state_preset_save == 0:
 
         print("trying preset mode")
       # tallenna tilapäisesti muutujaan nykytila
