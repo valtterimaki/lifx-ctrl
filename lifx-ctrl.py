@@ -46,6 +46,7 @@ state_power = 1
 state_zonemode = 0
 state_colormode = 0
 state_preview = 0
+state_preset_save = 0
 
 prev_time = math.floor(time.time()*10)
 
@@ -173,7 +174,7 @@ def btn_enc_cb(channel):
 
 
 
-def enc_cb(value, direction):
+def enc2_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
 
@@ -214,7 +215,7 @@ def enc_cb(value, direction):
   print("* New value encoder 2: {}, Direction: {}".format(value, direction))
 
 
-def enc_vb(value, direction):
+def enc1_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
   global zone_set_color
@@ -233,16 +234,19 @@ def enc_vb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
+        if general_color < 3500:
+          general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
+        else:
+          general_color[3] = clamp(general_color[3] + (150 * dir), 2500, 9000)
 
       # if the color mode is on, the 3-way switch selects which parameter is changed
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          general_color[2] = clamp(general_color[2] + (1024 * dir), 0, 65535)
+          general_color[0] = clamp(general_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          general_color[0] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
+          general_color[2] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
           general_color[1] = clamp(general_color[1] + (1024 * dir), 0, 65535)
@@ -254,16 +258,19 @@ def enc_vb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        zone_set_color[3] = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
+        if general_color < 3500:
+          zone_set_color[3] = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
+        else:
+          zone_set_color[3] = clamp(zone_set_color[3] + (150 * dir), 2500, 9000)
 
       # if the color mode is on, the 3-way switch selects which parameter is changed
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          zone_set_color[2] = clamp(zone_set_color[2] + (1024 * dir), 0, 65535)
+          zone_set_color[0] = clamp(zone_set_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          zone_set_color[0] = clampLoop(zone_set_color[0] + (960 * dir), 0, 65535)
+          zone_set_color[2] = clampLoop(zone_set_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
           zone_set_color[1] = clamp(zone_set_color[1] + (1024 * dir), 0, 65535)
@@ -411,8 +418,8 @@ def main():
   GPIO.add_event_detect(BTN_PRESET, GPIO.BOTH, callback=btn_preset_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ENC, GPIO.BOTH, callback=btn_enc_cb, bouncetime=10)
 
-  enc1 = Encoder(25, 4, enc_vb)
-  enc2 = Encoder(21, 12, enc_cb)
+  enc1 = Encoder(4, 25, enc1_cb)
+  enc2 = Encoder(21, 12, enc2_cb)
 
 
   #### others ####
@@ -438,13 +445,22 @@ def main():
       state_preview == 1
 
     ## preset save
-
     if GPIO.input(BTN_PRESET) == 1:
       # counter
       if count_halfsecond() == True:
         simplecounter += 1
         #print(simplecounter)
       if simplecounter > 3:
+
+        # More like this:
+        # state_preset_save -> ON
+        # disabloi kaikki muut napit ja toiminnot paitsi enc1
+        # aseta selected_preset -> 0
+        # vilkuta osaa ledeistä selected_presetin mukaan 0-3
+        # IF enc1 säädetään -> selected preset ++
+        # *** bonus: jos enc1 nappia painetaan, previkoi presetti
+        # IF presetnappia painetaan uusiks -> tallenna presetti
+
         try:
           prst = strip.get_color_zones(0, zone_count)
         except:
