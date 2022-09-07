@@ -139,7 +139,7 @@ def btn_colormode_cb(channel):
     #os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def btn_preset_dn_cb(channel):
+def btn_preset_cb(channel):
   if state_power == 1:
     global selected_preset
     global state_preset_save
@@ -154,18 +154,7 @@ def btn_preset_dn_cb(channel):
       print(selected_preset)
       state_preset_save = 0
 
-  #if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
-    #GPIO.output(LED_PRESET, GPIO.HIGH)
-
-def btn_preset_up_cb(channel):
-  if state_power == 1:
-    global selected_preset
-    global state_preset_save
-    global prst
-    print("Preset button released!")
-    print(GPIO.input(BTN_PRESET))
-
-    if state_preset_save == 0:
+    else:
       #GPIO.output(LED_PRESET, GPIO.LOW)
       print("using preset")
       print(selected_preset)
@@ -455,8 +444,7 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.RISING, callback=btn_preset_dn_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_up_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
   enc1 = Encoder(4, 25, enc1_cb)
