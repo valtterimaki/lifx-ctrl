@@ -449,7 +449,7 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=10)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=20)
   GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
   enc1 = Encoder(4, 25, enc1_cb)
@@ -487,42 +487,22 @@ def main():
       if count_halfsecond() == True:
         simplecounter += 1
         #print(simplecounter)
+
       if simplecounter > 3 and state_preset_save == 0:
 
         print("trying preset mode")
-      # tallenna tilapäisesti muutujaan nykytila
+
         try:
           prst = strip.get_color_zones(0, zone_count)
-        # state_preset_save -> ON
           state_preset_save = 2
           print("preset mode active")
-        # disabloi kaikki muut napit ja toiminnot paitsi enc1
-          ##### done
-        # aseta selected_preset -> 0
           selected_preset = 0
-        # valaise osa ledeistä selected_presetin mukaan 0-3
-          #### done
-        # IF enc1 säädetään -> selected_preset ++
-          ##### done
-        # *** bonus: jos enc1 nappia painetaan, previkoi presetti
-          # TODO TODO TODO
-        # IF presetnappia painetaan uusiks -> tallenna presetti
-          ##### done
+          strip.set_color([0, 0, 0, 3500], 200, True)
+          strip.set_zone_color((zone_count / 4) * selected_preset, (zone_count * selected_preset + zone_count) / 4, [0, 0, 65535, 3500], 0, 1, 1)
 
         except:
           print("couldn't get zones for preset")
 
-
-#--- old
-
-      #try:
-      #  prst = strip.get_color_zones(0, zone_count)
-      #except:
-      #  print("couldn't get zones for preset")
-      #else:
-      #  np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
-      #  print("Preset saved to")
-      #  print(selected_preset)
 
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
