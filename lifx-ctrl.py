@@ -476,6 +476,7 @@ def main():
     ## preset save
     if GPIO.input(BTN_PRESET) == 1:
       global state_preset_save
+      global prst
 
       # counter
       if count_halfsecond() == True:
