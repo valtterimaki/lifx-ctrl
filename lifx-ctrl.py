@@ -157,6 +157,7 @@ def btn_preset_cb(channel):
       np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
       print("Preset saved to")
       print(selected_preset)
+      strip.set_zone_colors(prst, 0, True)
       state_preset_save = 0
 
     else:
@@ -449,7 +450,7 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=20)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=50)
   GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
   enc1 = Encoder(4, 25, enc1_cb)
