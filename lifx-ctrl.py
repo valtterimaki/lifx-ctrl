@@ -168,6 +168,8 @@ def btn_preset_cb(channel):
       else:
         selected_preset = 0
 
+    sleep(0.1)
+
   #if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     #GPIO.output(LED_PRESET, GPIO.HIGH)
 
@@ -257,7 +259,7 @@ def enc1_cb(value, direction):
     if state_preset_save == 1:
 
       # cycle thru presets
-      selected_preset = clampLoop(selected_preset + dir, 0, 3)
+      selected_preset = clampLoop(selected_preset - dir, 0, 3)
       strip.set_color([0, 0, 0, 3500], 200, True)
       strip.set_zone_color((zone_count / 4) * selected_preset, (zone_count * selected_preset + zone_count) / 4, [0, 0, 65535, 3500], 0, 1, 1)
 
@@ -447,10 +449,10 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=100)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
-  enc1 = Encoder(25, 4, enc1_cb)
+  enc1 = Encoder(4, 25, enc1_cb)
   enc2 = Encoder(21, 12, enc2_cb)
 
 
