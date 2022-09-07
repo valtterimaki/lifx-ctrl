@@ -147,8 +147,13 @@ def btn_preset_cb(channel):
     print("Preset button pressed!")
     print(GPIO.input(BTN_PRESET))
 
+
+    # if preset save state was just pressed, do nothing first time
+    if state_preset_save == 2:
+      state_preset_save = 1
+
     # if preset save state is on
-    if state_preset_save == 1:
+    elif state_preset_save == 1:
       np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
       print("Preset saved to")
       print(selected_preset)
@@ -489,7 +494,7 @@ def main():
         try:
           prst = strip.get_color_zones(0, zone_count)
         # state_preset_save -> ON
-          state_preset_save = 1
+          state_preset_save = 2
           print("preset mode active")
         # disabloi kaikki muut napit ja toiminnot paitsi enc1
           ##### done
