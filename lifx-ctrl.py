@@ -155,7 +155,8 @@ def btn_preset_cb(channel):
 
     else:
       #GPIO.output(LED_PRESET, GPIO.LOW)
-
+      print("using preset")
+      print(selected_preset)
       prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
       strip.set_zone_colors(prst, 0, True)
       if selected_preset < 3:
