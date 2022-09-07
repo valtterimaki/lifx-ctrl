@@ -260,7 +260,7 @@ def enc1_cb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        if general_color < 3500:
+        if general_color[3] < 3500:
           zone_set_color[3] = clamp(zone_set_color[3] + (100 * dir), 2500, 9000)
         else:
           zone_set_color[3] = clamp(zone_set_color[3] + (150 * dir), 2500, 9000)
@@ -287,7 +287,7 @@ def enc1_cb(value, direction):
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
-        if general_color < 3500:
+        if general_color[3] < 3500:
           general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
         else:
           general_color[3] = clamp(general_color[3] + (150 * dir), 2500, 9000)
