@@ -83,51 +83,57 @@ def btn_zonemode_cb(channel):
     global state_zonemode
     global zone_set_color
 
-    # first of all, check if lifx power is on or not and do nothing if not
-    if state_power == 1 and GPIO.input(BTN_ZONE) == 1:
-      state_zonemode = 1 - state_zonemode
-      print("zonemode " + str(state_zonemode))
-      selected_zone = 0
+    # first of all, check if power is on and preset save mode is off
+    if state_power == 1 and state_preset_save != 1:
 
-    if state_zonemode == 1:
-      GPIO.output(LED_ZONE,GPIO.HIGH)
-      #zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
-      #temp_color = zone_set_color
-    else:
-      GPIO.output(LED_ZONE,GPIO.LOW)
-      ## make sure preview mode is off
-      state_preview = 1
+      # check if button was pressed down
+      if GPIO.input(BTN_ZONE) == 1:
+        state_zonemode = 1 - state_zonemode
+        print("zonemode " + str(state_zonemode))
+        selected_zone = 0
 
-    sleep(0.1)
+      if state_zonemode == 1:
+        GPIO.output(LED_ZONE,GPIO.HIGH)
+        #zone_set_color = list(strip.get_color_zones(selected_zone, selected_zone + 1)[0])
+        #temp_color = zone_set_color
+      else:
+        GPIO.output(LED_ZONE,GPIO.LOW)
+        ## make sure preview mode is off
+        state_preview = 1
+
+      sleep(0.1)
 
 
 def btn_colormode_cb(channel):
     print("Colormode button pressed!")
     global state_colormode
 
-    # first of all, check if lifx power is on or not and do nothing if not
-    if state_power == 1 and GPIO.input(BTN_COLOR) == 1:
-        state_colormode = 1 - state_colormode
-        print("colormode " + str(state_colormode))
+    # first of all, check if power is on and preset save mode is off
+    if state_power == 1 and state_preset_save != 1:
 
-    if state_colormode == 1:
-      GPIO.output(LED_COLOR,GPIO.HIGH)
-      if state_zonemode == 0:
-        general_color[3] = 3500
-        general_color[1] = 65535
-        strip.set_color(general_color, 100, True)
-      else:
-        zone_set_color[3] = 3500
-        zone_set_color[1] = 65535
-    else:
-      GPIO.output(LED_COLOR,GPIO.LOW)
-      if state_zonemode == 0:
-        general_color[1] = 0
-        strip.set_color(general_color, 100, True)
-      else:
-        zone_set_color[1] = 0
+      # check if button was pressed down
+      if GPIO.input(BTN_COLOR) == 1:
+          state_colormode = 1 - state_colormode
+          print("colormode " + str(state_colormode))
 
-    sleep(0.1)
+      if state_colormode == 1:
+        GPIO.output(LED_COLOR,GPIO.HIGH)
+        if state_zonemode == 0:
+          general_color[3] = 3500
+          general_color[1] = 65535
+          strip.set_color(general_color, 100, True)
+        else:
+          zone_set_color[3] = 3500
+          zone_set_color[1] = 65535
+      else:
+        GPIO.output(LED_COLOR,GPIO.LOW)
+        if state_zonemode == 0:
+          general_color[1] = 0
+          strip.set_color(general_color, 100, True)
+        else:
+          zone_set_color[1] = 0
+
+      sleep(0.1)
 
     ## use this for reboot later
     #os.execl(sys.executable, sys.executable, *sys.argv)
@@ -136,16 +142,24 @@ def btn_colormode_cb(channel):
 def btn_preset_cb(channel):
   if state_power == 1 and GPIO.input(BTN_PRESET) == 0:
     global selected_preset
-
     print("Preset button pressed!")
-    GPIO.output(LED_PRESET, GPIO.LOW)
 
-    prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
-    strip.set_zone_colors(prst, 0, True)
-    if selected_preset < 3:
-      selected_preset += 1
+    # if preset save state is on
+    if state_preset_save == 1:
+      np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
+      print("Preset saved to")
+      print(selected_preset)
+      state_preset_save = 0
+
     else:
-      selected_preset = 0
+      GPIO.output(LED_PRESET, GPIO.LOW)
+
+      prst = np.loadtxt("preset_" + str(selected_preset) + ".txt", dtype=int)
+      strip.set_zone_colors(prst, 0, True)
+      if selected_preset < 3:
+        selected_preset += 1
+      else:
+        selected_preset = 0
 
   if state_power == 1 and GPIO.input(BTN_PRESET) == 1:
     GPIO.output(LED_PRESET, GPIO.HIGH)
@@ -153,33 +167,35 @@ def btn_preset_cb(channel):
 
 def btn_enc_cb(channel):
 
-  # if zone mode is ON
-  if state_zonemode == 1:
-    print("Encoder button pressed!")
-    global temp_colors
-    global state_preview
+  # first of all, check if power is on and preset save mode is off
+  if state_power == 1 and state_preset_save != 1:
 
-    if state_power == 1 and GPIO.input(BTN_ENC) == 0:
-      if state_preview == 0:
-        try:
-          temp_colors = strip.get_color_zones(0, zone_count)
-          strip.set_color(zone_set_color, 200, True)
-          state_preview = 1
-        except:
-          print("couldn't get zones for preview")
-      else:
-        strip.set_zone_colors(temp_colors, 0, True)
-        strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
-        state_preview = 0
+    # if zone mode is ON
+    if state_zonemode == 1:
+      print("Encoder button pressed!")
+      global temp_colors
+      global state_preview
 
+      if state_power == 1 and GPIO.input(BTN_ENC) == 0:
+        if state_preview == 0:
+          try:
+            temp_colors = strip.get_color_zones(0, zone_count)
+            strip.set_color(zone_set_color, 200, True)
+            state_preview = 1
+          except:
+            print("couldn't get zones for preview")
+        else:
+          strip.set_zone_colors(temp_colors, 0, True)
+          strip.set_zone_color(selected_zone, selected_zone, zone_set_color, 0, 1, 1)
+          state_preview = 0
 
 
 def enc2_cb(value, direction):
   print("Encoder turned!")
   global selected_zone
 
-  # first of all, check if lifx power is on or not and do nothing if not
-  if state_power == 1:
+  # first of all, check if power is on and preset save mode is off
+  if state_power == 1 and state_preset_save != 1:
 
     # if zone mode is OFF
     if state_zonemode == 0:
@@ -220,7 +236,7 @@ def enc1_cb(value, direction):
   global selected_zone
   global zone_set_color
 
-  # first of all, check if lifx power is on or not and do nothing if not
+  # first of all, check if lifx power is on
   if state_power == 1:
 
     # check encoder direction and assign + or -
@@ -229,32 +245,18 @@ def enc1_cb(value, direction):
     else: # better than elif direction == "L":
       dir = -1
 
-    # if zone mode is OFF
-    if state_zonemode == 0:
 
-      # if the color mode is off only temperature is adjusted
-      if state_colormode == 0:
-        if general_color < 3500:
-          general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
-        else:
-          general_color[3] = clamp(general_color[3] + (150 * dir), 2500, 9000)
+    # if preset save state is on
+    if state_preset_save == 1:
 
-      # if the color mode is on, the 3-way switch selects which parameter is changed
-      else:
-        # if brightness mode
-        if GPIO.input(SWITCH_BRIGHTNESS):
-          general_color[0] = clamp(general_color[2] + (1024 * dir), 0, 65535)
-        # if color mode
-        elif GPIO.input(SWITCH_COLOR):
-          general_color[2] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
-        # if saturation mode
-        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
-          general_color[1] = clamp(general_color[1] + (1024 * dir), 0, 65535)
+      # cycle thru presets
+      selected_preset = clampLoop(selected_preset + dir, 0, 3)
+      strip.set_color([0, 0, 0, 3500], 200, True)
+      strip.set_zone_color((zone_count / 4) * selected_preset, (zone_count * selected_preset + zone_count) / 4, [0, 0, 65535, 3500], 0, 1, 1)
 
-      strip.set_color(general_color, 200, True)
 
     # if zone mode is ON
-    else:
+    elif state_zonemode == 1:
 
       # if the color mode is off only temperature is adjusted
       if state_colormode == 0:
@@ -280,6 +282,29 @@ def enc1_cb(value, direction):
       else:
         strip.set_color(zone_set_color, 200, True)
 
+    # if zone mode is OFF
+    else:
+
+      # if the color mode is off only temperature is adjusted
+      if state_colormode == 0:
+        if general_color < 3500:
+          general_color[3] = clamp(general_color[3] + (100 * dir), 2500, 9000)
+        else:
+          general_color[3] = clamp(general_color[3] + (150 * dir), 2500, 9000)
+
+      # if the color mode is on, the 3-way switch selects which parameter is changed
+      else:
+        # if brightness mode
+        if GPIO.input(SWITCH_BRIGHTNESS):
+          general_color[0] = clamp(general_color[2] + (1024 * dir), 0, 65535)
+        # if color mode
+        elif GPIO.input(SWITCH_COLOR):
+          general_color[2] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
+        # if saturation mode
+        elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
+          general_color[1] = clamp(general_color[1] + (1024 * dir), 0, 65535)
+
+      strip.set_color(general_color, 200, True)
 
   print("* New value encoder 1: {}, Direction: {}".format(value, direction))
   print(dir)
@@ -316,9 +341,9 @@ def clamp(n, minn, maxn):
 
 def clampLoop(n, minn, maxn):
     if n < minn:
-        return maxn - (minn - n)
+        return (maxn + 1) - (minn - n)
     elif n > maxn:
-        return minn + (n - maxn)
+        return (minn - 1) + (n - maxn)
     else:
         return n
 
@@ -452,23 +477,38 @@ def main():
         #print(simplecounter)
       if simplecounter > 3:
 
-        # More like this:
-        # state_preset_save -> ON
-        # disabloi kaikki muut napit ja toiminnot paitsi enc1
-        # aseta selected_preset -> 0
-        # vilkuta osaa ledeistä selected_presetin mukaan 0-3
-        # IF enc1 säädetään -> selected preset ++
-        # *** bonus: jos enc1 nappia painetaan, previkoi presetti
-        # IF presetnappia painetaan uusiks -> tallenna presetti
-
+      # tallenna tilapäisesti muutujaan nykytila
         try:
           prst = strip.get_color_zones(0, zone_count)
+        # state_preset_save -> ON
+          state_preset_save = 1
+        # disabloi kaikki muut napit ja toiminnot paitsi enc1
+          ##### done
+        # aseta selected_preset -> 0
+          selected_preset = 0
+        # valaise osa ledeistä selected_presetin mukaan 0-3
+          #### done
+        # IF enc1 säädetään -> selected_preset ++
+          ##### done
+        # *** bonus: jos enc1 nappia painetaan, previkoi presetti
+          # TODO TODO TODO
+        # IF presetnappia painetaan uusiks -> tallenna presetti
+          ##### done
+
         except:
           print("couldn't get zones for preset")
-        else:
-          np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
-          print("Preset saved to")
-          print(selected_preset)
+
+
+#--- old
+
+      #try:
+      #  prst = strip.get_color_zones(0, zone_count)
+      #except:
+      #  print("couldn't get zones for preset")
+      #else:
+      #  np.savetxt("preset_" + str(selected_preset) + ".txt", prst, fmt='%d')
+      #  print("Preset saved to")
+      #  print(selected_preset)
 
     elif GPIO.input(BTN_PRESET) == 0:
       if simplecounter > 0:
