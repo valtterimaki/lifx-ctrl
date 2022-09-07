@@ -37,8 +37,8 @@ BTN_PRESET = 23
 LED_ZONE = 16
 LED_COLOR = 20
 LED_PRESET = 24
-SWITCH_BRIGHTNESS = 5
-SWITCH_COLOR = 6
+SWITCH_BRIGHTNESS = 6
+SWITCH_COLOR = 5
 BTN_ENC = 26
 
 # set state variables
@@ -269,10 +269,10 @@ def enc1_cb(value, direction):
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          zone_set_color[0] = clamp(zone_set_color[2] + (1024 * dir), 0, 65535)
+          zone_set_color[2] = clamp(zone_set_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          zone_set_color[2] = clampLoop(zone_set_color[0] + (960 * dir), 0, 65535)
+          zone_set_color[0] = clampLoop(zone_set_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
           zone_set_color[1] = clamp(zone_set_color[1] + (1024 * dir), 0, 65535)
@@ -296,10 +296,10 @@ def enc1_cb(value, direction):
       else:
         # if brightness mode
         if GPIO.input(SWITCH_BRIGHTNESS):
-          general_color[0] = clamp(general_color[2] + (1024 * dir), 0, 65535)
+          general_color[2] = clamp(general_color[2] + (1024 * dir), 0, 65535)
         # if color mode
         elif GPIO.input(SWITCH_COLOR):
-          general_color[2] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
+          general_color[0] = clampLoop(general_color[0] + (960 * dir), 0, 65535)
         # if saturation mode
         elif not GPIO.input(SWITCH_BRIGHTNESS) and not GPIO.input(SWITCH_COLOR):
           general_color[1] = clamp(general_color[1] + (1024 * dir), 0, 65535)
