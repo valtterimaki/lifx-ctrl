@@ -145,6 +145,7 @@ def btn_preset_cb(channel):
     global state_preset_save
     global prst
     print("Preset button pressed!")
+    print(GPIO.input(BTN_PRESET))
 
     # if preset save state is on
     if state_preset_save == 1 and GPIO.input(BTN_PRESET) == 1:
