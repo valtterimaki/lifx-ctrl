@@ -144,9 +144,6 @@ def btn_preset_cb(channel):
     global selected_preset
     global state_preset_save
     global prst
-    print("Preset button pressed!")
-    print(GPIO.input(BTN_PRESET))
-
 
     # if preset save state was just pressed, do nothing first time
     if state_preset_save == 2:
@@ -450,10 +447,10 @@ def main():
   GPIO.add_event_detect(SWITCH_POWER, GPIO.BOTH, callback=btn_power_on_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_ZONE, GPIO.RISING, callback=btn_zonemode_cb, bouncetime=10)
   GPIO.add_event_detect(BTN_COLOR, GPIO.RISING, callback=btn_colormode_cb, bouncetime=10)
-  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=50)
+  GPIO.add_event_detect(BTN_PRESET, GPIO.FALLING, callback=btn_preset_cb, bouncetime=100)
   GPIO.add_event_detect(BTN_ENC, GPIO.RISING, callback=btn_enc_cb, bouncetime=10)
 
-  enc1 = Encoder(4, 25, enc1_cb)
+  enc1 = Encoder(25, 4, enc1_cb)
   enc2 = Encoder(21, 12, enc2_cb)
 
 
